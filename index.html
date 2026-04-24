@@ -551,22 +551,9 @@ function getActiveDevices() {
   return [...document.querySelectorAll('.device-chip.active')].map(c => c.dataset.kw);
 }
 
-// eBay Finding API (XML)
 async function ebaySearch(appId, keyword, globalId, itemsPerPage = 100) {
-  const url = `https://svcs.ebay.com/services/search/FindingService/v1` +
-    `?OPERATION-NAME=findItemsAdvanced` +
-    `&SERVICE-VERSION=1.13.0` +
-    `&SECURITY-APPNAME=${encodeURIComponent(appId)}` +
-    `&RESPONSE-DATA-FORMAT=JSON` +
-    `&REST-PAYLOAD` +
-    `&GLOBAL-ID=${globalId}` +
-    `&keywords=${encodeURIComponent(keyword)}` +
-    `&categoryId=139971` +
-    `&itemFilter(0).name=ExcludeLocation&itemFilter(0).value=JP` +
-    `&paginationInput.entriesPerPage=${itemsPerPage}` +
-    `&outputSelector(0)=SellerInfo`;
-
-  const res = await fetch(url);
+  const params = new URLSearchParams({ appId, keyword, globalId, itemsPerPage });
+  const res = await fetch(`/api/search?${params}`);
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return await res.json();
 }
