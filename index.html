@@ -551,6 +551,7 @@ function getActiveDevices() {
   return [...document.querySelectorAll('.device-chip.active')].map(c => c.dataset.kw);
 }
 
+// eBay Finding API経由（プロキシ）
 async function ebaySearch(appId, keyword, globalId, itemsPerPage = 100) {
   const params = new URLSearchParams({ appId, keyword, globalId, itemsPerPage });
   const res = await fetch(`/api/search?${params}`);
@@ -575,18 +576,43 @@ async function startSearch() {
 
   const sellerMap = {};
 
+  // 機種をまとめて1つのキーワードにする（API呼び出し回数を削減）
+  // 例：9機種×3マーケット=27回 → 1キーワード×3マーケット=3回
+  const combinedKeyword = devices.join(' OR ');
+
   try {
     let callCount = 0;
-    const totalCalls = devices.length * markets.length;
+    const totalCalls = markets.length;
 
-    for (const device of devices) {
-      for (const market of markets) {
-        callCount++;
-        setStatus(true, `検索中... (${callCount}/${totalCalls}) ${device} @ ${market}`);
+    for (const market of markets) {
+      callCount++;
+      setStatus(true, `検索中... (${callCount}/${totalCalls}) @ ${market}`);
 
-        try {
-          const data = await ebaySearch(appId, device, market);
+      try {
+          const data = await ebaySearch(appId, combinedKeyword, market);
           const items = data?.findItemsAdvancedResponse?.[0]?.searchResult?.[0]?.item || [];
+
+          for (const item of items) {
+            const sellerInfo = item.sellerInfo?.[0];
+            if (!sellerInfo) continue;
+
+            const sellerName = sellerInfo.sellerUserName?.[0];
+            if (!sellerName) continue;
+
+            const feedback = parseInt(sellerInfo.feedbackScore?.[0] || 0);
+            if (feedback < minFb) continue;
+
+            const title = item.title?.[0] || '';
+            const condition = item.condition?.[0]?.conditionDisplayName?.[0] || '';
+            const price = item.sellingStatus?.[0]?.currentPrice?.[0]?.__value__ || '';
+            const currency = item.sellingStatus?.[0]?.currentPrice?.[0]?.['@currencyId'] || '';
+            const itemUrl = item.viewItemURL?.[0] || '';
+            const country = item.location?.[0] || '';
+
+            // タイトルにアクティブな機種が含まれているか確認
+            const titleLower = title.toLowerCase();
+            const matchedDevice = devices.find(d => titleLower.includes(d.toLowerCase()));
+            if (!matchedDevice) continue;
 
           for (const item of items) {
             const sellerInfo = item.sellerInfo?.[0];
@@ -663,15 +689,14 @@ async function startSearch() {
               sellerMap[sellerName].items.push({ title, price, currency, condition, tag: itemTag, url: itemUrl });
             }
             sellerMap[sellerName].tags.add(itemTag);
-            sellerMap[sellerName].devices.add(device);
+            sellerMap[sellerName].devices.add(matchedDevice);
           }
         } catch (e) {
-          console.warn(`API error for ${device}@${market}:`, e);
+          console.warn(`API error for ${market}:`, e);
         }
 
-        await new Promise(r => setTimeout(r, 200));
+        await new Promise(r => setTimeout(r, 300));
       }
-    }
 
     const sellers = Object.values(sellerMap)
       .sort((a, b) => b.feedback - a.feedback)
