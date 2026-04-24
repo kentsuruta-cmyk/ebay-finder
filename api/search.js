@@ -1,4 +1,4 @@
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -18,24 +18,24 @@ export default async function handler(req, res) {
   }
 
   const url =
-    `https://svcs.ebay.com/services/search/FindingService/v1` +
-    `?OPERATION-NAME=findItemsAdvanced` +
-    `&SERVICE-VERSION=1.13.0` +
-    `&SECURITY-APPNAME=${encodeURIComponent(appId)}` +
-    `&RESPONSE-DATA-FORMAT=JSON` +
-    `&REST-PAYLOAD` +
-    `&GLOBAL-ID=${encodeURIComponent(globalId)}` +
-    `&keywords=${encodeURIComponent(keyword)}` +
-    `&categoryId=139971` +
-    `&itemFilter(0).name=ExcludeLocation&itemFilter(0).value=JP` +
-    `&paginationInput.entriesPerPage=${encodeURIComponent(itemsPerPage)}` +
-    `&outputSelector(0)=SellerInfo`;
+    'https://svcs.ebay.com/services/search/FindingService/v1' +
+    '?OPERATION-NAME=findItemsAdvanced' +
+    '&SERVICE-VERSION=1.13.0' +
+    '&SECURITY-APPNAME=' + encodeURIComponent(appId) +
+    '&RESPONSE-DATA-FORMAT=JSON' +
+    '&REST-PAYLOAD' +
+    '&GLOBAL-ID=' + encodeURIComponent(globalId) +
+    '&keywords=' + encodeURIComponent(keyword) +
+    '&categoryId=139971' +
+    '&itemFilter(0).name=ExcludeLocation&itemFilter(0).value=JP' +
+    '&paginationInput.entriesPerPage=' + encodeURIComponent(itemsPerPage) +
+    '&outputSelector(0)=SellerInfo';
 
-  const ebayRes = await fetch(url);
-  if (!ebayRes.ok) {
-    return res.status(ebayRes.status).json({ error: `eBay API error: ${ebayRes.status}` });
+  try {
+    const ebayRes = await fetch(url);
+    const data = await ebayRes.json();
+    return res.status(ebayRes.status).json(data);
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
   }
-
-  const data = await ebayRes.json();
-  return res.status(200).json(data);
-}
+};
