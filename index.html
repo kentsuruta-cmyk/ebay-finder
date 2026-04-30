@@ -592,29 +592,7 @@ async function startSearch() {
           const data = await ebaySearch(appId, combinedKeyword, market);
           const items = data?.findItemsAdvancedResponse?.[0]?.searchResult?.[0]?.item || [];
 
-          for (const item of items) {
-            const sellerInfo = item.sellerInfo?.[0];
-            if (!sellerInfo) continue;
-
-            const sellerName = sellerInfo.sellerUserName?.[0];
-            if (!sellerName) continue;
-
-            const feedback = parseInt(sellerInfo.feedbackScore?.[0] || 0);
-            if (feedback < minFb) continue;
-
-            const title = item.title?.[0] || '';
-            const condition = item.condition?.[0]?.conditionDisplayName?.[0] || '';
-            const price = item.sellingStatus?.[0]?.currentPrice?.[0]?.__value__ || '';
-            const currency = item.sellingStatus?.[0]?.currentPrice?.[0]?.['@currencyId'] || '';
-            const itemUrl = item.viewItemURL?.[0] || '';
-            const country = item.location?.[0] || '';
-
-            // タイトルにアクティブな機種が含まれているか確認
-            const titleLower = title.toLowerCase();
-            const matchedDevice = devices.find(d => titleLower.includes(d.toLowerCase()));
-            if (!matchedDevice) continue;
-
-          for (const item of items) {
+            for (const item of items) {
             const sellerInfo = item.sellerInfo?.[0];
             if (!sellerInfo) continue;
 
@@ -634,6 +612,8 @@ async function startSearch() {
             // スコアリング方式でjunk/used/refurb判定
             const titleLower = title.toLowerCase();
             const condLower = condition.toLowerCase();
+            const matchedDevice = devices.find(d => titleLower.includes(d.toLowerCase()));
+            if (!matchedDevice) continue;
             let junkScore = 0;
             let usedScore = 0;
             let refurbScore = 0;
