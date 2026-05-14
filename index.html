@@ -13,12 +13,18 @@
     .container { max-width: 900px; margin: 40px auto; padding: 0 20px; }
     .card { background: #141414; border: 1px solid #2a2a2a; border-radius: 8px; padding: 30px; margin-bottom: 20px; }
     .card h2 { color: #00ff88; font-size: 13px; letter-spacing: 3px; margin-bottom: 20px; }
-    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
     .form-group label { font-size: 11px; color: #888; letter-spacing: 1px; }
     .form-group input { background: #0a0a0a; border: 1px solid #333; color: #fff; padding: 10px; border-radius: 4px; font-family: 'Courier New', monospace; font-size: 13px; }
     .form-group input:focus { outline: none; border-color: #00ff88; }
-    .markets { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .keywords-section { margin-bottom: 16px; }
+    .keywords-section label { font-size: 11px; color: #888; letter-spacing: 1px; display: block; margin-bottom: 8px; }
+    .keyword-row { display: flex; gap: 8px; margin-bottom: 8px; align-items: center; }
+    .keyword-row input { flex: 1; background: #0a0a0a; border: 1px solid #333; color: #fff; padding: 10px; border-radius: 4px; font-family: 'Courier New', monospace; font-size: 13px; }
+    .keyword-row input:focus { outline: none; border-color: #00ff88; }
+    .keyword-num { color: #00ff88; font-size: 11px; width: 20px; flex-shrink: 0; }
+    .markets { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
     .market-btn { background: #0a0a0a; border: 1px solid #333; color: #888; padding: 6px 14px; border-radius: 4px; cursor: pointer; font-size: 12px; font-family: 'Courier New', monospace; transition: all 0.2s; }
     .market-btn.active { background: #00ff88; border-color: #00ff88; color: #000; font-weight: bold; }
     .search-btn { width: 100%; margin-top: 20px; background: #ff2d6b; border: none; color: #fff; padding: 14px; border-radius: 4px; font-size: 14px; letter-spacing: 2px; cursor: pointer; font-family: 'Courier New', monospace; transition: background 0.2s; }
@@ -33,7 +39,7 @@
     td a { color: #00ff88; text-decoration: none; }
     td a:hover { text-decoration: underline; }
     .status { text-align: center; padding: 40px; color: #888; font-size: 13px; }
-    .flag { font-size: 16px; }
+    .progress { color: #00ff88; font-size: 12px; margin-bottom: 8px; }
   </style>
 </head>
 <body>
@@ -45,20 +51,34 @@
   <div class="container">
     <div class="card">
       <h2>▸ SEARCH CONFIG</h2>
-      <div class="form-grid">
-        <div class="form-group">
-          <label>KEYWORD</label>
-          <input type="text" id="keyword" placeholder="例: Game Boy, 3DS, PSP" value="Game Boy">
+
+      <div class="keywords-section">
+        <label>KEYWORDS（最大3つ・結果は合算されます）</label>
+        <div class="keyword-row">
+          <span class="keyword-num">1.</span>
+          <input type="text" id="keyword1" placeholder="例: Game Boy Color Junk" value="Game Boy Color Junk">
         </div>
+        <div class="keyword-row">
+          <span class="keyword-num">2.</span>
+          <input type="text" id="keyword2" placeholder="例: Game Boy Color For Parts">
+        </div>
+        <div class="keyword-row">
+          <span class="keyword-num">3.</span>
+          <input type="text" id="keyword3" placeholder="例: Game Boy Color Not Working">
+        </div>
+      </div>
+
+      <div class="form-grid">
         <div class="form-group">
           <label>MIN FEEDBACK</label>
           <input type="number" id="minFeedback" placeholder="例: 500" value="500">
         </div>
         <div class="form-group">
-          <label>MAX RESULTS</label>
+          <label>MAX RESULTS（キーワードごと）</label>
           <input type="number" id="itemsPerPage" placeholder="例: 100" value="100">
         </div>
       </div>
+
       <div style="margin-top:16px;">
         <label style="font-size:11px; color:#888; letter-spacing:1px;">MARKETS</label>
         <div class="markets" id="markets">
@@ -70,6 +90,7 @@
           <button class="market-btn active" data-id="EBAY-CA">🇨🇦 CA</button>
         </div>
       </div>
+
       <button class="search-btn" id="searchBtn" onclick="startSearch()">🔍 SEARCH SELLERS</button>
     </div>
 
@@ -78,6 +99,7 @@
         <h2>▸ RESULTS</h2>
         <span id="resultCount"></span>
       </div>
+      <div id="progressLog"></div>
       <div id="resultsBody"></div>
     </div>
   </div>
@@ -94,12 +116,17 @@
     });
 
     async function startSearch() {
-      const keyword = document.getElementById('keyword').value.trim();
+      const keywords = [
+        document.getElementById('keyword1').value.trim(),
+        document.getElementById('keyword2').value.trim(),
+        document.getElementById('keyword3').value.trim(),
+      ].filter(k => k !== '');
+
       const minFeedback = document.getElementById('minFeedback').value || 0;
       const itemsPerPage = document.getElementById('itemsPerPage').value || 50;
       const activeMarkets = [...document.querySelectorAll('.market-btn.active')].map(b => b.dataset.id);
 
-      if (!keyword) { alert('キーワードを入力してください'); return; }
+      if (keywords.length === 0) { alert('キーワードを1つ以上入力してください'); return; }
       if (activeMarkets.length === 0) { alert('マーケットを1つ以上選択してください'); return; }
 
       const btn = document.getElementById('searchBtn');
@@ -107,29 +134,46 @@
       btn.textContent = '⏳ SEARCHING...';
 
       const resultsCard = document.getElementById('resultsCard');
+      const progressLog = document.getElementById('progressLog');
       const resultsBody = document.getElementById('resultsBody');
       resultsCard.style.display = 'block';
-      resultsBody.innerHTML = '<div class="status">検索中...</div>';
+      resultsBody.innerHTML = '';
+      progressLog.innerHTML = '<div class="status">検索中...</div>';
 
       const allSellers = {};
+      let totalRequests = keywords.length * activeMarkets.length;
+      let completed = 0;
 
-      for (const market of activeMarkets) {
-        try {
-          const res = await fetch(`/api/search?keyword=${encodeURIComponent(keyword)}&globalId=${market}&itemsPerPage=${itemsPerPage}&minFeedback=${minFeedback}`);
-          const data = await res.json();
-          if (data.sellers) {
-            for (const seller of data.sellers) {
-              const key = `${seller.username}_${market}`;
-              allSellers[key] = { ...seller, market };
+      for (const keyword of keywords) {
+        for (const market of activeMarkets) {
+          try {
+            progressLog.innerHTML = `<div class="progress">🔍 検索中: "${keyword}" / ${market} (${completed + 1}/${totalRequests})</div>`;
+            const res = await fetch(`/api/search?keyword=${encodeURIComponent(keyword)}&globalId=${market}&itemsPerPage=${itemsPerPage}&minFeedback=${minFeedback}`);
+            const data = await res.json();
+            if (data.sellers) {
+              for (const seller of data.sellers) {
+                const key = seller.username;
+                if (!allSellers[key]) {
+                  allSellers[key] = {
+                    ...seller,
+                    markets: new Set(),
+                    keywords: new Set(),
+                  };
+                }
+                allSellers[key].markets.add(market);
+                allSellers[key].keywords.add(keyword);
+                allSellers[key].itemCount = (allSellers[key].itemCount || 0) + seller.itemCount;
+              }
             }
+          } catch (e) {
+            console.error(`Error for ${keyword} / ${market}:`, e);
           }
-        } catch (e) {
-          console.error(`Error for ${market}:`, e);
+          completed++;
         }
       }
 
+      progressLog.innerHTML = '';
       const sellers = Object.values(allSellers).sort((a, b) => b.feedbackScore - a.feedbackScore);
-
       document.getElementById('resultCount').textContent = `${sellers.length} sellers found`;
 
       if (sellers.length === 0) {
@@ -140,8 +184,8 @@
             <thead>
               <tr>
                 <th>SELLER</th>
-                <th>MARKET</th>
                 <th>SHIP FROM</th>
+                <th>MARKETS</th>
                 <th>FEEDBACK</th>
                 <th>RATING</th>
                 <th>ITEMS</th>
@@ -150,11 +194,12 @@
             <tbody>
               ${sellers.map(s => {
                 const flag = countryFlags[s.shipFrom] || '🌐';
+                const markets = [...s.markets].join(', ');
                 return `
                 <tr>
                   <td><a href="https://www.ebay.com/usr/${s.username}" target="_blank">${s.username}</a></td>
-                  <td>${s.market}</td>
                   <td>${flag} ${s.shipFrom}</td>
+                  <td>${markets}</td>
                   <td>${s.feedbackScore.toLocaleString()}</td>
                   <td>${s.feedbackPercentage}%</td>
                   <td>${s.itemCount}</td>
