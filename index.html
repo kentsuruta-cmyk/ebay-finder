@@ -1,837 +1,162 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>eBay Seller Finder – Kenja Games</title>
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Noto+Sans+JP:wght@400;700&display=swap');
-
-  :root {
-    --bg: #0a0a0f;
-    --surface: #13131a;
-    --border: #2a2a3a;
-    --accent: #e6007a;
-    --accent2: #00d4ff;
-    --text: #e8e8f0;
-    --muted: #6b6b8a;
-    --good: #00e676;
-    --warn: #ffab00;
-  }
-
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'Noto Sans JP', sans-serif;
-    min-height: 100vh;
-  }
-
-  header {
-    padding: 24px 32px;
-    border-bottom: 1px solid var(--border);
-    display: flex;
-    align-items: center;
-    gap: 16px;
-  }
-
-  .logo {
-    font-family: 'Space Mono', monospace;
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: var(--accent);
-    letter-spacing: 2px;
-  }
-
-  .logo span { color: var(--accent2); }
-
-  .subtitle {
-    font-size: 0.78rem;
-    color: var(--muted);
-    font-family: 'Space Mono', monospace;
-  }
-
-  main { padding: 32px; max-width: 1200px; margin: 0 auto; }
-
-  /* 設定パネル */
-  .config-panel {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 24px;
-    margin-bottom: 24px;
-  }
-
-  .config-panel h2 {
-    font-family: 'Space Mono', monospace;
-    font-size: 0.85rem;
-    color: var(--accent2);
-    letter-spacing: 2px;
-    margin-bottom: 20px;
-    text-transform: uppercase;
-  }
-
-  .config-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 16px;
-    margin-bottom: 20px;
-  }
-
-  .field {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
-
-  .field label {
-    font-size: 0.78rem;
-    color: var(--muted);
-    font-family: 'Space Mono', monospace;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-  }
-
-  .field input, .field select {
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 10px 14px;
-    color: var(--text);
-    font-size: 0.9rem;
-    font-family: 'Noto Sans JP', sans-serif;
-    outline: none;
-    transition: border-color 0.2s;
-  }
-
-  .field input:focus, .field select:focus {
-    border-color: var(--accent2);
-  }
-
-  .field input::placeholder { color: var(--muted); }
-
-  /* モード選択 */
-  .mode-group {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 20px;
-  }
-
-  .mode-btn {
-    flex: 1;
-    padding: 12px;
-    border: 2px solid var(--border);
-    border-radius: 10px;
-    background: transparent;
-    color: var(--muted);
-    font-family: 'Space Mono', monospace;
-    font-size: 0.8rem;
-    cursor: pointer;
-    transition: all 0.2s;
-    text-align: center;
-    line-height: 1.5;
-  }
-
-  .mode-btn.active {
-    border-color: var(--accent);
-    color: var(--accent);
-    background: rgba(230,0,122,0.08);
-  }
-
-  .mode-btn span {
-    display: block;
-    font-size: 0.68rem;
-    opacity: 0.7;
-    margin-top: 2px;
-  }
-
-  /* ゲーム機チェックボックス */
-  .device-group {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    margin-bottom: 20px;
-  }
-
-  .device-chip {
-    padding: 7px 14px;
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    font-size: 0.8rem;
-    cursor: pointer;
-    transition: all 0.2s;
-    color: var(--muted);
-    background: transparent;
-    font-family: 'Space Mono', monospace;
-  }
-
-  .device-chip.active {
-    border-color: var(--accent2);
-    color: var(--accent2);
-    background: rgba(0,212,255,0.08);
-  }
-
-  /* マーケット選択 */
-  .market-group {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-    margin-bottom: 20px;
-  }
-
-  .market-chip {
-    padding: 6px 12px;
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    font-size: 0.78rem;
-    cursor: pointer;
-    transition: all 0.2s;
-    color: var(--muted);
-    background: transparent;
-    font-family: 'Space Mono', monospace;
-  }
-
-  .market-chip.active {
-    border-color: var(--good);
-    color: var(--good);
-    background: rgba(0,230,118,0.08);
-  }
-
-  /* 検索ボタン */
-  .search-btn {
-    width: 100%;
-    padding: 16px;
-    background: linear-gradient(135deg, var(--accent), #b5005f);
-    border: none;
-    border-radius: 10px;
-    color: white;
-    font-family: 'Space Mono', monospace;
-    font-size: 1rem;
-    font-weight: 700;
-    cursor: pointer;
-    letter-spacing: 2px;
-    transition: opacity 0.2s;
-  }
-
-  .search-btn:hover { opacity: 0.85; }
-  .search-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-
-  /* ステータスバー */
-  .status-bar {
-    display: none;
-    align-items: center;
-    gap: 12px;
-    padding: 12px 16px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    margin-bottom: 20px;
-    font-family: 'Space Mono', monospace;
-    font-size: 0.82rem;
-    color: var(--accent2);
-  }
-
-  .spinner {
-    width: 16px; height: 16px;
-    border: 2px solid var(--border);
-    border-top-color: var(--accent2);
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-  }
-
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  /* 結果エリア */
-  .results-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 16px;
-  }
-
-  .results-count {
-    font-family: 'Space Mono', monospace;
-    font-size: 0.85rem;
-    color: var(--muted);
-  }
-
-  .results-count strong { color: var(--accent2); }
-
-  /* セラーカード */
-  .seller-grid {
-    display: grid;
-    gap: 16px;
-  }
-
-  .seller-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 20px;
-    transition: border-color 0.2s;
-    animation: fadeUp 0.3s ease both;
-  }
-
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(12px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  .seller-card:hover { border-color: var(--accent2); }
-
-  .seller-top {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 12px;
-    margin-bottom: 14px;
-  }
-
-  .seller-name {
-    font-family: 'Space Mono', monospace;
-    font-size: 1rem;
-    font-weight: 700;
-    color: var(--accent2);
-  }
-
-  .seller-name a {
-    color: inherit;
-    text-decoration: none;
-  }
-
-  .seller-name a:hover { text-decoration: underline; }
-
-  .seller-badges {
-    display: flex;
-    gap: 6px;
-    flex-wrap: wrap;
-  }
-
-  .badge {
-    padding: 3px 10px;
-    border-radius: 4px;
-    font-size: 0.72rem;
-    font-family: 'Space Mono', monospace;
-    font-weight: 700;
-  }
-
-  .badge-junk { background: rgba(230,0,122,0.2); color: var(--accent); border: 1px solid var(--accent); }
-  .badge-used { background: rgba(0,212,255,0.15); color: var(--accent2); border: 1px solid var(--accent2); }
-  .badge-parts { background: rgba(255,171,0,0.15); color: var(--warn); border: 1px solid var(--warn); }
-  .badge-mixed { background: rgba(0,230,118,0.15); color: var(--good); border: 1px solid var(--good); }
-  .badge-refurb { background: rgba(180,0,255,0.15); color: #c084fc; border: 1px solid #c084fc; }
-
-  .seller-meta {
-    display: flex;
-    gap: 20px;
-    flex-wrap: wrap;
-    margin-bottom: 14px;
-    font-size: 0.82rem;
-    color: var(--muted);
-  }
-
-  .seller-meta span strong { color: var(--text); }
-
-  .seller-items {
-    margin-bottom: 14px;
-  }
-
-  .seller-items-title {
-    font-size: 0.75rem;
-    color: var(--muted);
-    font-family: 'Space Mono', monospace;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-bottom: 8px;
-  }
-
-  .item-list {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    max-height: 120px;
-    overflow-y: auto;
-  }
-
-  .item-list::-webkit-scrollbar { width: 4px; }
-  .item-list::-webkit-scrollbar-track { background: var(--bg); }
-  .item-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-
-  .item-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 0.8rem;
-    color: var(--text);
-    padding: 4px 8px;
-    background: var(--bg);
-    border-radius: 4px;
-    gap: 8px;
-  }
-
-  .item-title { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .item-price { color: var(--good); font-family: 'Space Mono', monospace; white-space: nowrap; }
-  .item-cond { font-size: 0.7rem; color: var(--muted); white-space: nowrap; }
-
-  /* メッセージエリア */
-  .msg-area {
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 12px;
-    margin-top: 12px;
-  }
-
-  .msg-area-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 8px;
-  }
-
-  .msg-area-title {
-    font-size: 0.75rem;
-    color: var(--muted);
-    font-family: 'Space Mono', monospace;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-  }
-
-  .copy-btn {
-    padding: 4px 12px;
-    background: transparent;
-    border: 1px solid var(--accent);
-    border-radius: 4px;
-    color: var(--accent);
-    font-size: 0.72rem;
-    font-family: 'Space Mono', monospace;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-
-  .copy-btn:hover { background: var(--accent); color: white; }
-  .copy-btn.copied { border-color: var(--good); color: var(--good); }
-
-  .msg-text {
-    font-size: 0.82rem;
-    color: var(--text);
-    line-height: 1.7;
-    white-space: pre-wrap;
-  }
-
-  /* エラー表示 */
-  .error-box {
-    display: none;
-    padding: 16px;
-    background: rgba(230,0,122,0.1);
-    border: 1px solid var(--accent);
-    border-radius: 8px;
-    color: var(--accent);
-    font-size: 0.85rem;
-    margin-bottom: 20px;
-  }
-
-  /* 空状態 */
-  .empty-state {
-    text-align: center;
-    padding: 60px 20px;
-    color: var(--muted);
-    font-family: 'Space Mono', monospace;
-    font-size: 0.85rem;
-    line-height: 2;
-  }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KENJAGAMES // eBay Seller Finder</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #0a0a0a; color: #ffffff; font-family: 'Courier New', monospace; }
+    header { padding: 20px 40px; border-bottom: 1px solid #333; }
+    header h1 { color: #ff2d6b; font-size: 20px; letter-spacing: 2px; }
+    header p { color: #888; font-size: 12px; margin-top: 4px; }
+    .container { max-width: 900px; margin: 40px auto; padding: 0 20px; }
+    .card { background: #141414; border: 1px solid #2a2a2a; border-radius: 8px; padding: 30px; margin-bottom: 20px; }
+    .card h2 { color: #00ff88; font-size: 13px; letter-spacing: 3px; margin-bottom: 20px; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group label { font-size: 11px; color: #888; letter-spacing: 1px; }
+    .form-group input { background: #0a0a0a; border: 1px solid #333; color: #fff; padding: 10px; border-radius: 4px; font-family: 'Courier New', monospace; font-size: 13px; }
+    .form-group input:focus { outline: none; border-color: #00ff88; }
+    .markets { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+    .market-btn { background: #0a0a0a; border: 1px solid #333; color: #888; padding: 6px 14px; border-radius: 4px; cursor: pointer; font-size: 12px; font-family: 'Courier New', monospace; transition: all 0.2s; }
+    .market-btn.active { background: #00ff88; border-color: #00ff88; color: #000; font-weight: bold; }
+    .search-btn { width: 100%; margin-top: 20px; background: #ff2d6b; border: none; color: #fff; padding: 14px; border-radius: 4px; font-size: 14px; letter-spacing: 2px; cursor: pointer; font-family: 'Courier New', monospace; transition: background 0.2s; }
+    .search-btn:hover { background: #e0255f; }
+    .search-btn:disabled { background: #444; cursor: not-allowed; }
+    .results-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .results-header span { color: #888; font-size: 12px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th { color: #00ff88; text-align: left; padding: 10px 12px; border-bottom: 1px solid #2a2a2a; font-size: 11px; letter-spacing: 1px; }
+    td { padding: 12px; border-bottom: 1px solid #1a1a1a; color: #ccc; }
+    tr:hover td { background: #1a1a1a; }
+    td a { color: #00ff88; text-decoration: none; }
+    td a:hover { text-decoration: underline; }
+    .status { text-align: center; padding: 40px; color: #888; font-size: 13px; }
+    .error { color: #ff2d6b; }
+  </style>
 </head>
 <body>
+  <header>
+    <h1>KENJAGAMES // eBay Seller Finder</h1>
+    <p>潜在取引先セラー発掘ツール</p>
+  </header>
 
-<header>
-  <div>
-    <div class="logo">KENJA<span>GAMES</span> // eBay Seller Finder</div>
-    <div class="subtitle">潜在取引先セラー発掘ツール</div>
-  </div>
-</header>
-
-<main>
-
-  <!-- 設定パネル -->
-  <div class="config-panel">
-    <h2>🔧 Search Config</h2>
-
-    <!-- APIキー -->
-    <div class="config-grid">
-      <div class="field">
-        <label>App ID (Client ID)</label>
-        <input type="text" id="app-id" placeholder="KenjaInc-Inventor-PRD-...">
+  <div class="container">
+    <div class="card">
+      <h2>▸ SEARCH CONFIG</h2>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>KEYWORD</label>
+          <input type="text" id="keyword" placeholder="例: Game Boy, 3DS, PSP" value="Game Boy">
+        </div>
+        <div class="form-group">
+          <label>MIN FEEDBACK</label>
+          <input type="number" id="minFeedback" placeholder="例: 500" value="500">
+        </div>
+        <div class="form-group">
+          <label>MAX RESULTS</label>
+          <input type="number" id="itemsPerPage" placeholder="例: 100" value="100">
+        </div>
       </div>
-      <div class="field">
-        <label>Cert ID (Client Secret)</label>
-        <input type="password" id="cert-id" placeholder="PRD-...">
+      <div style="margin-top:16px;">
+        <label style="font-size:11px; color:#888; letter-spacing:1px;">MARKETS</label>
+        <div class="markets" id="markets">
+          <button class="market-btn active" data-id="EBAY-US">🇺🇸 US</button>
+          <button class="market-btn active" data-id="EBAY-GB">🇬🇧 UK</button>
+          <button class="market-btn active" data-id="EBAY-AU">🇦🇺 AU</button>
+          <button class="market-btn active" data-id="EBAY-DE">🇩🇪 DE</button>
+          <button class="market-btn active" data-id="EBAY-FR">🇫🇷 FR</button>
+          <button class="market-btn active" data-id="EBAY-CA">🇨🇦 CA</button>
+        </div>
       </div>
-      <div class="field">
-        <label>Feedback 最低件数</label>
-        <input type="number" id="min-feedback" value="300" min="0">
+      <button class="search-btn" id="searchBtn" onclick="startSearch()">🔍 SEARCH SELLERS</button>
+    </div>
+
+    <div class="card" id="resultsCard" style="display:none;">
+      <div class="results-header">
+        <h2>▸ RESULTS</h2>
+        <span id="resultCount"></span>
       </div>
-      <div class="field">
-        <label>最大取得セラー数</label>
-        <input type="number" id="max-sellers" value="20" min="1" max="50">
-      </div>
-    </div>
-
-    <!-- マーケット選択 -->
-    <div class="field" style="margin-bottom:14px">
-      <label>マーケット（複数選択可）</label>
-    </div>
-    <div class="market-group" id="market-group">
-      <div class="market-chip active" data-id="EBAY-US">🇺🇸 US</div>
-      <div class="market-chip active" data-id="EBAY-GB">🇬🇧 UK</div>
-      <div class="market-chip active" data-id="EBAY-AU">🇦🇺 AU</div>
-      <div class="market-chip" data-id="EBAY-DE">🇩🇪 DE</div>
-      <div class="market-chip" data-id="EBAY-FR">🇫🇷 FR</div>
-      <div class="market-chip" data-id="EBAY-CA">🇨🇦 CA</div>
-    </div>
-
-    <!-- ゲーム機選択 -->
-    <div class="field" style="margin-bottom:14px">
-      <label>対象ゲーム機（複数選択可）</label>
-    </div>
-    <div class="device-group" id="device-group">
-      <div class="device-chip active" data-kw="Game Boy">Game Boy</div>
-      <div class="device-chip active" data-kw="Game Boy Color">GBC</div>
-      <div class="device-chip active" data-kw="Game Boy Pocket">GBP</div>
-      <div class="device-chip active" data-kw="Game Boy Advance">GBA</div>
-      <div class="device-chip active" data-kw="Game Boy Advance SP">GBA SP</div>
-      <div class="device-chip active" data-kw="PSP">PSP</div>
-      <div class="device-chip active" data-kw="Nintendo DS">DS</div>
-      <div class="device-chip active" data-kw="DS Lite">DS Lite</div>
-      <div class="device-chip active" data-kw="3DS">3DS</div>
-    </div>
-
-    <button class="search-btn" id="search-btn" onclick="startSearch()">
-      🔍 SEARCH SELLERS
-    </button>
-  </div>
-
-  <!-- ステータス -->
-  <div class="status-bar" id="status-bar">
-    <div class="spinner"></div>
-    <span id="status-text">検索中...</span>
-  </div>
-
-  <!-- エラー -->
-  <div class="error-box" id="error-box"></div>
-
-  <!-- 結果 -->
-  <div id="results-area">
-    <div class="empty-state">
-      条件を設定して SEARCH SELLERS を押してください<br>
-      セラー一覧・ストアURL・営業メッセージが自動生成されます
+      <div id="resultsBody"></div>
     </div>
   </div>
 
-</main>
+  <script>
+    document.querySelectorAll('.market-btn').forEach(btn => {
+      btn.addEventListener('click', () => btn.classList.toggle('active'));
+    });
 
-<script>
-// チップのトグル
-document.querySelectorAll('.market-chip, .device-chip').forEach(chip => {
-  chip.addEventListener('click', () => chip.classList.toggle('active'));
-});
+    async function startSearch() {
+      const keyword = document.getElementById('keyword').value.trim();
+      const minFeedback = document.getElementById('minFeedback').value || 0;
+      const itemsPerPage = document.getElementById('itemsPerPage').value || 50;
+      const activeMarkets = [...document.querySelectorAll('.market-btn.active')].map(b => b.dataset.id);
 
-document.querySelectorAll('.mode-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-  });
-});
+      if (!keyword) { alert('キーワードを入力してください'); return; }
+      if (activeMarkets.length === 0) { alert('マーケットを1つ以上選択してください'); return; }
 
-function getActiveMarkets() {
-  return [...document.querySelectorAll('.market-chip.active')].map(c => c.dataset.id);
-}
-function getActiveDevices() {
-  return [...document.querySelectorAll('.device-chip.active')].map(c => c.dataset.kw);
-}
+      const btn = document.getElementById('searchBtn');
+      btn.disabled = true;
+      btn.textContent = '⏳ SEARCHING...';
 
-// eBay Finding API経由（プロキシ）
-async function ebaySearch(appId, keyword, globalId, itemsPerPage = 100) {
-  const params = new URLSearchParams({ appId, keyword, globalId, itemsPerPage });
-  const res = await fetch(`/api/search?${params}`);
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  return await res.json();
-}
+      const resultsCard = document.getElementById('resultsCard');
+      const resultsBody = document.getElementById('resultsBody');
+      resultsCard.style.display = 'block';
+      resultsBody.innerHTML = '<div class="status">検索中...</div>';
 
-async function startSearch() {
-  const appId = document.getElementById('app-id').value.trim();
-  const minFb = parseInt(document.getElementById('min-feedback').value) || 300;
-  const maxSellers = parseInt(document.getElementById('max-sellers').value) || 20;
-  const markets = getActiveMarkets();
-  const devices = getActiveDevices();
+      const allSellers = {};
 
-  if (!appId) { showError('App IDを入力してください'); return; }
-  if (markets.length === 0) { showError('マーケットを1つ以上選択してください'); return; }
-  if (devices.length === 0) { showError('ゲーム機を1つ以上選択してください'); return; }
-
-  document.getElementById('search-btn').disabled = true;
-  document.getElementById('error-box').style.display = 'none';
-  setStatus(true, 'eBay APIに接続中...');
-
-  const sellerMap = {};
-
-  // 機種をまとめて1つのキーワードにする（API呼び出し回数を削減）
-  // 例：9機種×3マーケット=27回 → 1キーワード×3マーケット=3回
-  const combinedKeyword = devices.join(' OR ');
-
-  try {
-    let callCount = 0;
-    const totalCalls = markets.length;
-
-    for (const market of markets) {
-      callCount++;
-      setStatus(true, `検索中... (${callCount}/${totalCalls}) @ ${market}`);
-
-      try {
-          const data = await ebaySearch(appId, combinedKeyword, market);
-          const items = data?.findItemsAdvancedResponse?.[0]?.searchResult?.[0]?.item || [];
-
-            for (const item of items) {
-            const sellerInfo = item.sellerInfo?.[0];
-            if (!sellerInfo) continue;
-
-            const sellerName = sellerInfo.sellerUserName?.[0];
-            if (!sellerName) continue;
-
-            const feedback = parseInt(sellerInfo.feedbackScore?.[0] || 0);
-            if (feedback < minFb) continue;
-
-            const title = item.title?.[0] || '';
-            const condition = item.condition?.[0]?.conditionDisplayName?.[0] || '';
-            const price = item.sellingStatus?.[0]?.currentPrice?.[0]?.__value__ || '';
-            const currency = item.sellingStatus?.[0]?.currentPrice?.[0]?.['@currencyId'] || '';
-            const itemUrl = item.viewItemURL?.[0] || '';
-            const country = item.location?.[0] || '';
-
-            // スコアリング方式でjunk/used/refurb判定
-            const titleLower = title.toLowerCase();
-            const condLower = condition.toLowerCase();
-            const matchedDevice = devices.find(d => titleLower.includes(d.toLowerCase()));
-            if (!matchedDevice) continue;
-            let junkScore = 0;
-            let usedScore = 0;
-            let refurbScore = 0;
-
-            // Junkシグナル
-            const junkWords = ['junk', 'for parts', 'not working', 'as is', 'broken', 'faulty',
-              'damaged', 'cracked', 'repair', 'parts only', 'untested', 'dead', 'no power',
-              'screen damage', 'spares', 'salvage'];
-            junkWords.forEach(w => { if (titleLower.includes(w)) junkScore += (w.length > 5 ? 3 : 2); });
-
-            // Usedシグナル
-            const usedWords = ['tested', 'working', 'works', 'fully functional', 'good condition',
-              'great condition', 'excellent', 'clean', 'complete', 'cib', 'mint'];
-            usedWords.forEach(w => { if (titleLower.includes(w)) usedScore += (w.length > 5 ? 3 : 2); });
-
-            // Refurbシグナル
-            const refurbWords = ['refurbished', 'refurb', 'restored', 'recapped', 'serviced',
-              'reconditioned', 'rebuilt', 'repaired', 'ips screen', 'backlit', 'mod', 'modified'];
-            refurbWords.forEach(w => { if (titleLower.includes(w)) refurbScore += (w.length > 5 ? 3 : 2); });
-
-            // Conditionによる補正
-            if (condLower.includes('for parts') || condLower.includes('not working')) junkScore += 5;
-            if (condLower.includes('seller refurbished')) refurbScore += 5;
-            if (condLower === 'used') usedScore += 1;
-
-            let itemTag = 'used';
-            const maxScore = Math.max(junkScore, usedScore, refurbScore);
-            if (maxScore === 0) {
-              itemTag = 'used';
-            } else if (refurbScore === maxScore && refurbScore >= 2) {
-              itemTag = 'refurb';
-            } else if (junkScore === maxScore && junkScore >= 2) {
-              itemTag = condLower.includes('for parts') ? 'parts' : 'junk';
-            } else {
-              itemTag = 'used';
+      for (const market of activeMarkets) {
+        try {
+          const res = await fetch(`/api/search?keyword=${encodeURIComponent(keyword)}&globalId=${market}&itemsPerPage=${itemsPerPage}&minFeedback=${minFeedback}`);
+          const data = await res.json();
+          if (data.sellers) {
+            for (const seller of data.sellers) {
+              const key = `${seller.username}_${market}`;
+              allSellers[key] = { ...seller, market };
             }
-
-            // モードフィルター
-            if (!sellerMap[sellerName]) {
-              sellerMap[sellerName] = {
-                name: sellerName,
-                feedback,
-                country,
-                market,
-                storeUrl: `https://www.ebay.com/sch/${sellerName}`,
-                items: [],
-                tags: new Set(),
-                devices: new Set(),
-              };
-            }
-
-            if (sellerMap[sellerName].items.length < 5) {
-              sellerMap[sellerName].items.push({ title, price, currency, condition, tag: itemTag, url: itemUrl });
-            }
-            sellerMap[sellerName].tags.add(itemTag);
-            sellerMap[sellerName].devices.add(matchedDevice);
           }
         } catch (e) {
-          console.warn(`API error for ${market}:`, e);
+          console.error(`Error for ${market}:`, e);
         }
-
-        await new Promise(r => setTimeout(r, 300));
       }
 
-    const sellers = Object.values(sellerMap)
-      .sort((a, b) => b.feedback - a.feedback)
-      .slice(0, maxSellers);
+      const sellers = Object.values(allSellers).sort((a, b) => b.feedbackScore - a.feedbackScore);
 
-    setStatus(false);
-    renderResults(sellers);
+      document.getElementById('resultCount').textContent = `${sellers.length} sellers found`;
 
-  } catch (e) {
-    setStatus(false);
-    showError(`エラーが発生しました: ${e.message}`);
-  } finally {
-    document.getElementById('search-btn').disabled = false;
-  }
-}
+      if (sellers.length === 0) {
+        resultsBody.innerHTML = '<div class="status">条件に合うセラーが見つかりませんでした</div>';
+      } else {
+        resultsBody.innerHTML = `
+          <table>
+            <thead>
+              <tr>
+                <th>SELLER</th>
+                <th>MARKET</th>
+                <th>FEEDBACK</th>
+                <th>RATING</th>
+                <th>ITEMS</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${sellers.map(s => `
+                <tr>
+                  <td><a href="https://www.ebay.com/usr/${s.username}" target="_blank">${s.username}</a></td>
+                  <td>${s.market}</td>
+                  <td>${s.feedbackScore.toLocaleString()}</td>
+                  <td>${s.feedbackPercentage}%</td>
+                  <td>${s.itemCount}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>`;
+      }
 
-function renderResults(sellers) {
-  const area = document.getElementById('results-area');
-
-  if (sellers.length === 0) {
-    area.innerHTML = `<div class="empty-state">条件に合うセラーが見つかりませんでした<br>条件を変えて再検索してください</div>`;
-    return;
-  }
-
-  const countHtml = `
-    <div class="results-header">
-      <div class="results-count"><strong>${sellers.length}</strong> セラーが見つかりました</div>
-    </div>`;
-
-  const cardsHtml = sellers.map((s, i) => {
-    const tagSet = [...s.tags];
-    const badgesHtml = tagSet.map(t => {
-      if (t === 'junk') return `<span class="badge badge-junk">JUNK</span>`;
-      if (t === 'parts') return `<span class="badge badge-parts">FOR PARTS</span>`;
-      if (t === 'refurb') return `<span class="badge badge-refurb">🔧 REFURB</span>`;
-      return `<span class="badge badge-used">USED</span>`;
-    }).join('');
-
-    const devicesHtml = [...s.devices].join(' / ');
-    const marketLabel = s.market?.replace('EBAY-','') || '';
-
-    const itemsHtml = s.items.map(item => `
-      <div class="item-row">
-        <span class="item-title" title="${item.title}">${item.title}</span>
-        <span class="item-cond">${item.condition}</span>
-        <span class="item-price">${item.currency} ${parseFloat(item.price || 0).toFixed(0)}</span>
-      </div>`).join('');
-
-    const msg = generateMessage(s, tagSet);
-
-    return `
-      <div class="seller-card" style="animation-delay:${i * 0.05}s">
-        <div class="seller-top">
-          <div>
-            <div class="seller-name">
-              <a href="${s.storeUrl}" target="_blank">@${s.name}</a>
-            </div>
-            <div style="font-size:0.78rem;color:var(--muted);margin-top:4px">${devicesHtml}</div>
-          </div>
-          <div class="seller-badges">${badgesHtml}</div>
-        </div>
-        <div class="seller-meta">
-          <span>⭐ Feedback: <strong>${s.feedback.toLocaleString()}</strong></span>
-          <span>📍 ${s.country || '不明'}</span>
-          <span>🌐 ${marketLabel}</span>
-          <span><a href="${s.storeUrl}" target="_blank" style="color:var(--accent2);font-size:0.8rem">🔗 ストアを開く</a></span>
-        </div>
-        <div class="seller-items">
-          <div class="seller-items-title">出品サンプル（最大5件）</div>
-          <div class="item-list">${itemsHtml}</div>
-        </div>
-        <div class="msg-area">
-          <div class="msg-area-header">
-            <div class="msg-area-title">📨 営業メッセージ</div>
-            <button class="copy-btn" onclick="copyMsg(this, '${s.name}')">COPY</button>
-          </div>
-          <div class="msg-text" id="msg-${s.name}">${msg}</div>
-        </div>
-      </div>`;
-  }).join('');
-
-  area.innerHTML = countHtml + `<div class="seller-grid">${cardsHtml}</div>`;
-}
-
-function generateMessage(seller, tags) {
-  const isJunk = tags.includes('junk') || tags.includes('parts');
-  const isRefurb = tags.includes('refurb');
-  const devices = [...seller.devices].join(', ');
-
-  if (isRefurb) {
-    return `Hi,
-
-I found your store while browsing ${devices} listings and was really impressed by your refurbished units — great quality work!
-
-I run a retro gaming sourcing business in Japan and specialize in exporting classic handheld consoles. I regularly have access to junk/for-parts units (Game Boy series, PSP, DS, etc.) sourced directly from Japan, which could be great candidates for your refurbishment projects.
-
-If you're interested in a reliable supply of project units at competitive prices, I'd love to discuss a direct trading arrangement.
-
-Please search "kenjagames2" to find my store for reference.
-
-Looking forward to connecting!
-
-Best regards,
-Kenja Games`;
-  } else if (isJunk) {
-    return `Hi,
-
-I found your store while searching for ${devices} on eBay and was impressed by your listings.
-
-I run a retro gaming business in Japan, specializing in sourcing and reselling classic handheld consoles. I'm currently looking for reliable suppliers of junk/for-parts units (Game Boy series, PSP, DS, etc.) in bulk.
-
-If you have junk or non-working units available — even in large quantities — I'd love to discuss a direct trade arrangement outside of eBay fees.
-
-Please search "kenjagames2" to find my store for reference.
-
-Looking forward to hearing from you!
-
-Best regards,
-Kenja Games`;
-  } else {
-    return `Hi,
-
-I came across your store while looking for ${devices} listings and was impressed by the quality of your inventory.
-
-I'm a retro gaming reseller based in Japan, and I'm always on the lookout for trusted suppliers of used, working handheld consoles (Game Boy series, PSP, DS, etc.).
-
-If you're open to bulk or wholesale deals, I'd love to connect and discuss a long-term trading relationship.
-
-Please search "kenjagames2" to find my store for reference.
-
-Best regards,
-Kenja Games`;
-  }
-}
-
-function copyMsg(btn, sellerName) {
-  const text = document.getElementById(`msg-${sellerName}`)?.textContent || '';
-  navigator.clipboard.writeText(text).then(() => {
-    btn.textContent = 'COPIED ✓';
-    btn.classList.add('copied');
-    setTimeout(() => { btn.textContent = 'COPY'; btn.classList.remove('copied'); }, 2000);
-  });
-}
-
-function setStatus(show, text) {
-  const bar = document.getElementById('status-bar');
-  bar.style.display = show ? 'flex' : 'none';
-  if (text) document.getElementById('status-text').textContent = text;
-}
-
-function showError(msg) {
-  const box = document.getElementById('error-box');
-  box.style.display = 'block';
-  box.textContent = '⚠️ ' + msg;
-}
-</script>
+      btn.disabled = false;
+      btn.textContent = '🔍 SEARCH SELLERS';
+    }
+  </script>
 </body>
 </html>
