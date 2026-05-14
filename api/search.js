@@ -41,9 +41,9 @@ module.exports = async (req, res) => {
 
     const accessToken = tokenData.access_token;
 
-    // Step 2: Search items via Browse API (exclude Japan shipments)
+    // Step 2: Search items via Browse API
     const marketplaceId = globalId.replace('EBAY-', 'EBAY_');
-    const searchUrl = `https://api.ebay.com/buy/browse/v1/item_summary/search?q=${encodeURIComponent(keyword)}&limit=${itemsPerPage}&filter=buyingOptions:{FIXED_PRICE},excludeCountries:{JP}`;
+    const searchUrl = `https://api.ebay.com/buy/browse/v1/item_summary/search?q=${encodeURIComponent(keyword)}&limit=${itemsPerPage}&filter=buyingOptions%3A%7BFIXED_PRICE%7D`;
 
     const searchRes = await fetch(searchUrl, {
       headers: {
@@ -65,7 +65,7 @@ module.exports = async (req, res) => {
       const seller = item.seller;
       if (!seller) continue;
 
-      // Double-check: exclude items shipped from Japan
+      // Exclude items shipped from Japan
       const shipFrom = item.itemLocation?.country;
       if (shipFrom === 'JP') continue;
 
@@ -83,3 +83,14 @@ module.exports = async (req, res) => {
           shipFrom: shipFrom || 'N/A',
         };
       }
+      sellerMap[name].itemCount++;
+    }
+
+    const sellers = Object.values(sellerMap).sort((a, b) => b.feedbackScore - a.feedbackScore);
+
+    return res.status(200).json({ sellers, total: sellers.length });
+
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
+  }
+};
