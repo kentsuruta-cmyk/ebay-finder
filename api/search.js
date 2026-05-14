@@ -1,6 +1,6 @@
 const fetch = require('node-fetch');
 
-module.exports = async function handler(req, res) {
+module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -9,34 +9,81 @@ module.exports = async function handler(req, res) {
     return res.status(200).end();
   }
 
-  if (req.method !== 'GET') {
-    return res.status(405).json({ error: 'Method not allowed' });
+  const { keyword, globalId, itemsPerPage = 50, minFeedback = 0 } = req.query;
+
+  if (!keyword || !globalId) {
+    return res.status(400).json({ error: 'Missing required parameters: keyword, globalId' });
   }
 
-  const { appId, keyword, globalId, itemsPerPage = 100 } = req.query;
+  const clientId = process.env.EBAY_CLIENT_ID;
+  const clientSecret = process.env.EBAY_CLIENT_SECRET;
 
-  if (!appId || !keyword || !globalId) {
-    return res.status(400).json({ error: 'Missing required parameters: appId, keyword, globalId' });
+  if (!clientId || !clientSecret) {
+    return res.status(500).json({ error: 'Missing API credentials' });
   }
-
-  const url =
-    'https://svcs.ebay.com/services/search/FindingService/v1' +
-    '?OPERATION-NAME=findItemsAdvanced' +
-    '&SERVICE-VERSION=1.13.0' +
-    '&SECURITY-APPNAME=' + encodeURIComponent(appId) +
-    '&RESPONSE-DATA-FORMAT=JSON' +
-    '&REST-PAYLOAD' +
-    '&GLOBAL-ID=' + encodeURIComponent(globalId) +
-    '&keywords=' + encodeURIComponent(keyword) +
-    '&categoryId=139971' +
-    '&itemFilter(0).name=ExcludeLocation&itemFilter(0).value=JP' +
-    '&paginationInput.entriesPerPage=' + encodeURIComponent(itemsPerPage) +
-    '&outputSelector(0)=SellerInfo';
 
   try {
-    const ebayRes = await fetch(url);
-    const data = await ebayRes.json();
-    return res.status(ebayRes.status).json(data);
+    // Step 1: Get OAuth token
+    const credentials = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
+    const tokenRes = await fetch('https://api.ebay.com/identity/v1/oauth2/token', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Basic ${credentials}`,
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: 'grant_type=client_credentials&scope=https%3A%2F%2Fapi.ebay.com%2Foauth%2Fapi_scope'
+    });
+
+    const tokenData = await tokenRes.json();
+    if (!tokenData.access_token) {
+      return res.status(500).json({ error: 'Failed to get access token', details: tokenData });
+    }
+
+    const accessToken = tokenData.access_token;
+
+    // Step 2: Search items via Browse API
+    const marketplaceId = globalId.replace('EBAY-', 'EBAY_');
+    const searchUrl = `https://api.ebay.com/buy/browse/v1/item_summary/search?q=${encodeURIComponent(keyword)}&limit=${itemsPerPage}&filter=buyingOptions:{FIXED_PRICE}`;
+
+    const searchRes = await fetch(searchUrl, {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'X-EBAY-C-MARKETPLACE-ID': marketplaceId,
+        'Content-Type': 'application/json',
+      }
+    });
+
+    const searchData = await searchRes.json();
+
+    if (!searchData.itemSummaries) {
+      return res.status(200).json({ sellers: [] });
+    }
+
+    // Step 3: Extract seller info and aggregate
+    const sellerMap = {};
+    for (const item of searchData.itemSummaries) {
+      const seller = item.seller;
+      if (!seller) continue;
+      const name = seller.username;
+      const feedback = seller.feedbackScore || 0;
+
+      if (feedback < parseInt(minFeedback)) continue;
+
+      if (!sellerMap[name]) {
+        sellerMap[name] = {
+          username: name,
+          feedbackScore: feedback,
+          feedbackPercentage: seller.feedbackPercentage || 'N/A',
+          itemCount: 0,
+        };
+      }
+      sellerMap[name].itemCount++;
+    }
+
+    const sellers = Object.values(sellerMap).sort((a, b) => b.feedbackScore - a.feedbackScore);
+
+    return res.status(200).json({ sellers, total: sellers.length });
+
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
