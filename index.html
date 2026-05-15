@@ -36,13 +36,15 @@
     th { color: #00ff88; text-align: left; padding: 10px 12px; border-bottom: 1px solid #2a2a2a; font-size: 11px; letter-spacing: 1px; }
     td { padding: 10px 12px; border-bottom: 1px solid #1a1a1a; color: #ccc; vertical-align: top; }
     tr:hover td { background: #1a1a1a; }
+    tr.priority td { background: #0a1a0a; border-left: 3px solid #00ff88; }
+    tr.priority:hover td { background: #0f2a0f; }
     td a { color: #00ff88; text-decoration: none; }
     td a:hover { text-decoration: underline; }
     .status { text-align: center; padding: 40px; color: #888; font-size: 13px; }
     .progress { color: #00ff88; font-size: 12px; margin-bottom: 8px; }
     .msg-btn { background: #1a1a2e; border: 1px solid #444; color: #00ff88; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 11px; font-family: 'Courier New', monospace; white-space: nowrap; }
     .msg-btn:hover { background: #00ff88; color: #000; }
-    .msg-btn:disabled { background: #222; color: #555; cursor: not-allowed; }
+    .priority-badge { background: #00ff88; color: #000; font-size: 10px; padding: 2px 6px; border-radius: 3px; font-weight: bold; margin-left: 6px; }
     .msg-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center; }
     .msg-modal.active { display: flex; }
     .msg-box { background: #141414; border: 1px solid #333; border-radius: 8px; padding: 30px; width: 90%; max-width: 640px; max-height: 80vh; overflow-y: auto; }
@@ -53,6 +55,8 @@
     .copy-btn { flex: 1; background: #00ff88; border: none; color: #000; padding: 10px; border-radius: 4px; cursor: pointer; font-family: 'Courier New', monospace; font-size: 12px; font-weight: bold; }
     .close-btn { background: #333; border: none; color: #fff; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-family: 'Courier New', monospace; font-size: 12px; }
     .generating { color: #888; font-size: 12px; padding: 20px; text-align: center; }
+    .legend { font-size: 11px; color: #888; margin-bottom: 12px; }
+    .legend span { color: #00ff88; }
   </style>
 </head>
 <body>
@@ -108,6 +112,7 @@
         <h2>▸ RESULTS</h2>
         <span id="resultCount"></span>
       </div>
+      <div class="legend">⭐ <span>優先セラー</span>：Game / Games / Gaming / Handheld / Retro / Console / Vintage / Nintendo / Mario がユーザー名に含まれるセラー（日本除外済み）</div>
       <div id="progressLog"></div>
       <div id="resultsBody"></div>
     </div>
@@ -131,6 +136,16 @@
       'FR': '🇫🇷', 'CA': '🇨🇦', 'JP': '🇯🇵', 'CN': '🇨🇳',
       'IT': '🇮🇹', 'ES': '🇪🇸', 'NL': '🇳🇱', 'HK': '🇭🇰',
     };
+
+    const PRIORITY_KEYWORDS = [
+      'game', 'games', 'gaming', 'handheld', 'retro',
+      'console', 'consoles', 'vintage', 'nintendo', 'mario'
+    ];
+
+    function isPrioritySeller(username) {
+      const lower = username.toLowerCase();
+      return PRIORITY_KEYWORDS.some(kw => lower.includes(kw));
+    }
 
     document.querySelectorAll('.market-btn').forEach(btn => {
       btn.addEventListener('click', () => btn.classList.toggle('active'));
@@ -190,8 +205,19 @@
       }
 
       progressLog.innerHTML = '';
-      const sellers = Object.values(allSellers).sort((a, b) => b.feedbackScore - a.feedbackScore);
-      document.getElementById('resultCount').textContent = `${sellers.length} sellers found`;
+
+      let sellers = Object.values(allSellers);
+
+      // Sort: priority sellers first, then by feedback score
+      sellers.sort((a, b) => {
+        const aPriority = isPrioritySeller(a.username) ? 1 : 0;
+        const bPriority = isPrioritySeller(b.username) ? 1 : 0;
+        if (bPriority !== aPriority) return bPriority - aPriority;
+        return b.feedbackScore - a.feedbackScore;
+      });
+
+      const priorityCount = sellers.filter(s => isPrioritySeller(s.username)).length;
+      document.getElementById('resultCount').textContent = `${sellers.length} sellers found（うち優先: ${priorityCount}件）`;
 
       if (sellers.length === 0) {
         resultsBody.innerHTML = '<div class="status">条件に合うセラーが見つかりませんでした</div>';
@@ -214,9 +240,13 @@
                 const flag = countryFlags[s.shipFrom] || '🌐';
                 const markets = [...s.markets].join(', ');
                 const kws = [...s.keywords].join(' / ');
+                const priority = isPrioritySeller(s.username);
                 return `
-                <tr>
-                  <td><a href="https://www.ebay.com/usr/${s.username}" target="_blank">${s.username}</a></td>
+                <tr class="${priority ? 'priority' : ''}">
+                  <td>
+                    <a href="https://www.ebay.com/usr/${s.username}" target="_blank">${s.username}</a>
+                    ${priority ? '<span class="priority-badge">⭐ 優先</span>' : ''}
+                  </td>
                   <td>${flag} ${s.shipFrom}</td>
                   <td>${markets}</td>
                   <td>${s.feedbackScore.toLocaleString()}</td>
