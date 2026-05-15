@@ -10,7 +10,7 @@
     header { padding: 20px 40px; border-bottom: 1px solid #333; }
     header h1 { color: #ff2d6b; font-size: 20px; letter-spacing: 2px; }
     header p { color: #888; font-size: 12px; margin-top: 4px; }
-    .container { max-width: 900px; margin: 40px auto; padding: 0 20px; }
+    .container { max-width: 960px; margin: 40px auto; padding: 0 20px; }
     .card { background: #141414; border: 1px solid #2a2a2a; border-radius: 8px; padding: 30px; margin-bottom: 20px; }
     .card h2 { color: #00ff88; font-size: 13px; letter-spacing: 3px; margin-bottom: 20px; }
     .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
@@ -34,12 +34,25 @@
     .results-header span { color: #888; font-size: 12px; }
     table { width: 100%; border-collapse: collapse; font-size: 13px; }
     th { color: #00ff88; text-align: left; padding: 10px 12px; border-bottom: 1px solid #2a2a2a; font-size: 11px; letter-spacing: 1px; }
-    td { padding: 12px; border-bottom: 1px solid #1a1a1a; color: #ccc; }
+    td { padding: 10px 12px; border-bottom: 1px solid #1a1a1a; color: #ccc; vertical-align: top; }
     tr:hover td { background: #1a1a1a; }
     td a { color: #00ff88; text-decoration: none; }
     td a:hover { text-decoration: underline; }
     .status { text-align: center; padding: 40px; color: #888; font-size: 13px; }
     .progress { color: #00ff88; font-size: 12px; margin-bottom: 8px; }
+    .msg-btn { background: #1a1a2e; border: 1px solid #444; color: #00ff88; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 11px; font-family: 'Courier New', monospace; white-space: nowrap; }
+    .msg-btn:hover { background: #00ff88; color: #000; }
+    .msg-btn:disabled { background: #222; color: #555; cursor: not-allowed; }
+    .msg-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center; }
+    .msg-modal.active { display: flex; }
+    .msg-box { background: #141414; border: 1px solid #333; border-radius: 8px; padding: 30px; width: 90%; max-width: 640px; max-height: 80vh; overflow-y: auto; }
+    .msg-box h3 { color: #00ff88; font-size: 13px; letter-spacing: 2px; margin-bottom: 16px; }
+    .msg-box textarea { width: 100%; background: #0a0a0a; border: 1px solid #333; color: #fff; padding: 12px; border-radius: 4px; font-family: 'Courier New', monospace; font-size: 12px; line-height: 1.6; resize: vertical; min-height: 280px; }
+    .msg-box textarea:focus { outline: none; border-color: #00ff88; }
+    .msg-actions { display: flex; gap: 10px; margin-top: 12px; }
+    .copy-btn { flex: 1; background: #00ff88; border: none; color: #000; padding: 10px; border-radius: 4px; cursor: pointer; font-family: 'Courier New', monospace; font-size: 12px; font-weight: bold; }
+    .close-btn { background: #333; border: none; color: #fff; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-family: 'Courier New', monospace; font-size: 12px; }
+    .generating { color: #888; font-size: 12px; padding: 20px; text-align: center; }
   </style>
 </head>
 <body>
@@ -51,7 +64,6 @@
   <div class="container">
     <div class="card">
       <h2>▸ SEARCH CONFIG</h2>
-
       <div class="keywords-section">
         <label>KEYWORDS（最大3つ・結果は合算されます）</label>
         <div class="keyword-row">
@@ -60,14 +72,13 @@
         </div>
         <div class="keyword-row">
           <span class="keyword-num">2.</span>
-          <input type="text" id="keyword2" placeholder="例: Game Boy Color For Parts">
+          <input type="text" id="keyword2" placeholder="例: Game Boy Advance For Parts">
         </div>
         <div class="keyword-row">
           <span class="keyword-num">3.</span>
-          <input type="text" id="keyword3" placeholder="例: Game Boy Color Not Working">
+          <input type="text" id="keyword3" placeholder="例: Nintendo DS Not Working">
         </div>
       </div>
-
       <div class="form-grid">
         <div class="form-group">
           <label>MIN FEEDBACK</label>
@@ -78,10 +89,9 @@
           <input type="number" id="itemsPerPage" placeholder="例: 100" value="100">
         </div>
       </div>
-
       <div style="margin-top:16px;">
         <label style="font-size:11px; color:#888; letter-spacing:1px;">MARKETS</label>
-        <div class="markets" id="markets">
+        <div class="markets">
           <button class="market-btn active" data-id="EBAY-US">🇺🇸 US</button>
           <button class="market-btn active" data-id="EBAY-GB">🇬🇧 UK</button>
           <button class="market-btn active" data-id="EBAY-AU">🇦🇺 AU</button>
@@ -90,7 +100,6 @@
           <button class="market-btn active" data-id="EBAY-CA">🇨🇦 CA</button>
         </div>
       </div>
-
       <button class="search-btn" id="searchBtn" onclick="startSearch()">🔍 SEARCH SELLERS</button>
     </div>
 
@@ -101,6 +110,18 @@
       </div>
       <div id="progressLog"></div>
       <div id="resultsBody"></div>
+    </div>
+  </div>
+
+  <!-- Message Modal -->
+  <div class="msg-modal" id="msgModal">
+    <div class="msg-box">
+      <h3>▸ GENERATED MESSAGE</h3>
+      <div id="msgContent"></div>
+      <div class="msg-actions">
+        <button class="copy-btn" onclick="copyMessage()">📋 COPY MESSAGE</button>
+        <button class="close-btn" onclick="closeModal()">CLOSE</button>
+      </div>
     </div>
   </div>
 
@@ -154,15 +175,11 @@
               for (const seller of data.sellers) {
                 const key = seller.username;
                 if (!allSellers[key]) {
-                  allSellers[key] = {
-                    ...seller,
-                    markets: new Set(),
-                    keywords: new Set(),
-                  };
+                  allSellers[key] = { ...seller, markets: new Set(), keywords: new Set(), itemCount: 0 };
                 }
                 allSellers[key].markets.add(market);
                 allSellers[key].keywords.add(keyword);
-                allSellers[key].itemCount = (allSellers[key].itemCount || 0) + seller.itemCount;
+                allSellers[key].itemCount += seller.itemCount;
               }
             }
           } catch (e) {
@@ -189,12 +206,14 @@
                 <th>FEEDBACK</th>
                 <th>RATING</th>
                 <th>ITEMS</th>
+                <th>ACTION</th>
               </tr>
             </thead>
             <tbody>
               ${sellers.map(s => {
                 const flag = countryFlags[s.shipFrom] || '🌐';
                 const markets = [...s.markets].join(', ');
+                const kws = [...s.keywords].join(' / ');
                 return `
                 <tr>
                   <td><a href="https://www.ebay.com/usr/${s.username}" target="_blank">${s.username}</a></td>
@@ -203,6 +222,7 @@
                   <td>${s.feedbackScore.toLocaleString()}</td>
                   <td>${s.feedbackPercentage}%</td>
                   <td>${s.itemCount}</td>
+                  <td><button class="msg-btn" onclick="generateMessage('${s.username}', '${s.shipFrom}', '${markets}', ${s.feedbackScore}, '${s.feedbackPercentage}', '${kws}')">✉ MESSAGE</button></td>
                 </tr>`;
               }).join('')}
             </tbody>
@@ -212,6 +232,75 @@
       btn.disabled = false;
       btn.textContent = '🔍 SEARCH SELLERS';
     }
+
+    async function generateMessage(username, shipFrom, markets, feedback, rating, keywords) {
+      document.getElementById('msgModal').classList.add('active');
+      document.getElementById('msgContent').innerHTML = '<div class="generating">⏳ メッセージを生成中...</div>';
+
+      const prompt = `You are writing a professional sales outreach message on behalf of Kenja Games, a Japanese wholesale supplier of retro handheld gaming consoles.
+
+Seller info:
+- eBay username: ${username}
+- Ships from: ${shipFrom}
+- Active markets: ${markets}
+- Feedback score: ${feedback} (${rating}%)
+- Product keywords they sell: ${keywords}
+
+About Kenja Games:
+- Specializes in retro compact/handheld gaming consoles from Japan
+- Sells both JUNK condition and fully working USED units
+- Product lineup: GBC, GBA, GBA SP, PSP, DS, 3DS and similar
+- Also sells on eBay but primarily does B2B wholesale with game shops overseas
+- Store name online: kenjagames2 (ask them to search this online)
+- Pricing will be shared upon inquiry
+
+Rules for the message:
+- Write in English only
+- Keep it friendly, professional, and concise (max 5-6 sentences)
+- Do NOT suggest or imply direct/off-platform transactions
+- Mention that you noticed their store and think there could be a good fit
+- End by asking them to search "kenjagames2" online and reach out
+- Do NOT include subject line, just the message body
+- Tailor the message based on what they sell (${keywords})
+
+Write the message now:`;
+
+      try {
+        const response = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            model: 'claude-sonnet-4-20250514',
+            max_tokens: 1000,
+            messages: [{ role: 'user', content: prompt }]
+          })
+        });
+
+        const data = await response.json();
+        const message = data.content[0].text;
+
+        document.getElementById('msgContent').innerHTML = `<textarea id="msgText">${message}</textarea>`;
+      } catch (e) {
+        document.getElementById('msgContent').innerHTML = `<div class="generating" style="color:#ff2d6b;">エラーが発生しました。もう一度お試しください。</div>`;
+      }
+    }
+
+    function copyMessage() {
+      const textarea = document.getElementById('msgText');
+      if (textarea) {
+        textarea.select();
+        document.execCommand('copy');
+        alert('コピーしました！eBayメッセージに貼り付けてください。');
+      }
+    }
+
+    function closeModal() {
+      document.getElementById('msgModal').classList.remove('active');
+    }
+
+    window.addEventListener('click', (e) => {
+      if (e.target === document.getElementById('msgModal')) closeModal();
+    });
   </script>
 </body>
 </html>
