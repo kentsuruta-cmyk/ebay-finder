@@ -208,7 +208,11 @@
 
       let sellers = Object.values(allSellers);
 
-      // Sort: priority sellers first, then by feedback score
+  // Filter out sellers with rating below 97%
+      sellers = sellers.filter(s => {
+  const rating = parseFloat(s.feedbackPercentage);
+  return isNaN(rating) || rating >= 97;
+});
       sellers.sort((a, b) => {
         const aPriority = isPrioritySeller(a.username) ? 1 : 0;
         const bPriority = isPrioritySeller(b.username) ? 1 : 0;
