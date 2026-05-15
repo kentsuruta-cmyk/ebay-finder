@@ -237,49 +237,20 @@
       document.getElementById('msgModal').classList.add('active');
       document.getElementById('msgContent').innerHTML = '<div class="generating">⏳ メッセージを生成中...</div>';
 
-      const prompt = `You are writing a professional sales outreach message on behalf of Kenja Games, a Japanese wholesale supplier of retro handheld gaming consoles.
-
-Seller info:
-- eBay username: ${username}
-- Ships from: ${shipFrom}
-- Active markets: ${markets}
-- Feedback score: ${feedback} (${rating}%)
-- Product keywords they sell: ${keywords}
-
-About Kenja Games:
-- Specializes in retro compact/handheld gaming consoles from Japan
-- Sells both JUNK condition and fully working USED units
-- Product lineup: GBC, GBA, GBA SP, PSP, DS, 3DS and similar
-- Also sells on eBay but primarily does B2B wholesale with game shops overseas
-- Store name online: kenjagames2 (ask them to search this online)
-- Pricing will be shared upon inquiry
-
-Rules for the message:
-- Write in English only
-- Keep it friendly, professional, and concise (max 5-6 sentences)
-- Do NOT suggest or imply direct/off-platform transactions
-- Mention that you noticed their store and think there could be a good fit
-- End by asking them to search "kenjagames2" online and reach out
-- Do NOT include subject line, just the message body
-- Tailor the message based on what they sell (${keywords})
-
-Write the message now:`;
-
       try {
-        const response = await fetch('https://api.anthropic.com/v1/messages', {
+        const response = await fetch('/api/message', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            model: 'claude-sonnet-4-20250514',
-            max_tokens: 1000,
-            messages: [{ role: 'user', content: prompt }]
-          })
+          body: JSON.stringify({ username, shipFrom, markets, feedback, rating, keywords })
         });
 
         const data = await response.json();
-        const message = data.content[0].text;
 
-        document.getElementById('msgContent').innerHTML = `<textarea id="msgText">${message}</textarea>`;
+        if (data.message) {
+          document.getElementById('msgContent').innerHTML = `<textarea id="msgText">${data.message}</textarea>`;
+        } else {
+          document.getElementById('msgContent').innerHTML = `<div class="generating" style="color:#ff2d6b;">エラー: ${data.error || '不明なエラー'}</div>`;
+        }
       } catch (e) {
         document.getElementById('msgContent').innerHTML = `<div class="generating" style="color:#ff2d6b;">エラーが発生しました。もう一度お試しください。</div>`;
       }
