@@ -1,311 +1,248 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>KENJAGAMES // eBay Seller Finder</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { background: #0a0a0a; color: #ffffff; font-family: 'Courier New', monospace; }
-    header { padding: 20px 40px; border-bottom: 1px solid #333; }
-    header h1 { color: #ff2d6b; font-size: 20px; letter-spacing: 2px; }
-    header p { color: #888; font-size: 12px; margin-top: 4px; }
-    .container { max-width: 960px; margin: 40px auto; padding: 0 20px; }
-    .card { background: #141414; border: 1px solid #2a2a2a; border-radius: 8px; padding: 30px; margin-bottom: 20px; }
-    .card h2 { color: #00ff88; font-size: 13px; letter-spacing: 3px; margin-bottom: 20px; }
-    .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
-    .form-group label { font-size: 11px; color: #888; letter-spacing: 1px; }
-    .form-group input { background: #0a0a0a; border: 1px solid #333; color: #fff; padding: 10px; border-radius: 4px; font-family: 'Courier New', monospace; font-size: 13px; }
-    .form-group input:focus { outline: none; border-color: #00ff88; }
-    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-    .keywords-section { margin-bottom: 16px; }
-    .keywords-section label { font-size: 11px; color: #888; letter-spacing: 1px; display: block; margin-bottom: 8px; }
-    .keyword-row { display: flex; gap: 8px; margin-bottom: 8px; align-items: center; }
-    .keyword-row input { flex: 1; background: #0a0a0a; border: 1px solid #333; color: #fff; padding: 10px; border-radius: 4px; font-family: 'Courier New', monospace; font-size: 13px; }
-    .keyword-row input:focus { outline: none; border-color: #00ff88; }
-    .keyword-num { color: #00ff88; font-size: 11px; width: 20px; flex-shrink: 0; }
-    .markets { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
-    .market-btn { background: #0a0a0a; border: 1px solid #333; color: #888; padding: 6px 14px; border-radius: 4px; cursor: pointer; font-size: 12px; font-family: 'Courier New', monospace; transition: all 0.2s; }
-    .market-btn.active { background: #00ff88; border-color: #00ff88; color: #000; font-weight: bold; }
-    .search-btn { width: 100%; margin-top: 20px; background: #ff2d6b; border: none; color: #fff; padding: 14px; border-radius: 4px; font-size: 14px; letter-spacing: 2px; cursor: pointer; font-family: 'Courier New', monospace; transition: background 0.2s; }
-    .search-btn:hover { background: #e0255f; }
-    .search-btn:disabled { background: #444; cursor: not-allowed; }
-    .results-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-    .results-header span { color: #888; font-size: 12px; }
-    table { width: 100%; border-collapse: collapse; font-size: 13px; }
-    th { color: #00ff88; text-align: left; padding: 10px 12px; border-bottom: 1px solid #2a2a2a; font-size: 11px; letter-spacing: 1px; }
-    td { padding: 10px 12px; border-bottom: 1px solid #1a1a1a; color: #ccc; vertical-align: top; }
-    tr:hover td { background: #1a1a1a; }
-    tr.priority td { background: #0a1a0a; border-left: 3px solid #00ff88; }
-    tr.priority:hover td { background: #0f2a0f; }
-    td a { color: #00ff88; text-decoration: none; }
-    td a:hover { text-decoration: underline; }
-    .status { text-align: center; padding: 40px; color: #888; font-size: 13px; }
-    .progress { color: #00ff88; font-size: 12px; margin-bottom: 8px; }
-    .msg-btn { background: #1a1a2e; border: 1px solid #444; color: #00ff88; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 11px; font-family: 'Courier New', monospace; white-space: nowrap; }
-    .msg-btn:hover { background: #00ff88; color: #000; }
-    .priority-badge { background: #00ff88; color: #000; font-size: 10px; padding: 2px 6px; border-radius: 3px; font-weight: bold; margin-left: 6px; }
-    .msg-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center; }
-    .msg-modal.active { display: flex; }
-    .msg-box { background: #141414; border: 1px solid #333; border-radius: 8px; padding: 30px; width: 90%; max-width: 640px; max-height: 80vh; overflow-y: auto; }
-    .msg-box h3 { color: #00ff88; font-size: 13px; letter-spacing: 2px; margin-bottom: 16px; }
-    .msg-box textarea { width: 100%; background: #0a0a0a; border: 1px solid #333; color: #fff; padding: 12px; border-radius: 4px; font-family: 'Courier New', monospace; font-size: 12px; line-height: 1.6; resize: vertical; min-height: 280px; }
-    .msg-box textarea:focus { outline: none; border-color: #00ff88; }
-    .msg-actions { display: flex; gap: 10px; margin-top: 12px; }
-    .copy-btn { flex: 1; background: #00ff88; border: none; color: #000; padding: 10px; border-radius: 4px; cursor: pointer; font-family: 'Courier New', monospace; font-size: 12px; font-weight: bold; }
-    .close-btn { background: #333; border: none; color: #fff; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-family: 'Courier New', monospace; font-size: 12px; }
-    .generating { color: #888; font-size: 12px; padding: 20px; text-align: center; }
-    .legend { font-size: 11px; color: #888; margin-bottom: 12px; }
-    .legend span { color: #00ff88; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KENJAGAMES // Yahoo Auction Watcher</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #f5f5f5; color: #111; font-family: 'Courier New', monospace; }
+header { padding: 20px 40px; border-bottom: 1px solid #ddd; background: #fff; }
+header h1 { color: #e0003c; font-size: 20px; letter-spacing: 2px; }
+header p { color: #888; font-size: 12px; margin-top: 4px; }
+.container { max-width: 1100px; margin: 40px auto; padding: 0 20px; }
+.card { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 30px; margin-bottom: 20px; }
+.card h2 { color: #e0003c; font-size: 13px; letter-spacing: 3px; margin-bottom: 20px; }
+.search-btn { width: 100%; background: #e0003c; border: none; color: #fff; padding: 14px; border-radius: 4px; font-size: 14px; letter-spacing: 2px; cursor: pointer; font-family: 'Courier New', monospace; transition: background 0.2s; }
+.search-btn:hover { background: #c0002e; }
+.search-btn:disabled { background: #ccc; cursor: not-allowed; }
+.results-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.results-header span { color: #888; font-size: 12px; }
+.filter-btns { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+.filter-btn { background: #f5f5f5; border: 1px solid #ddd; color: #555; padding: 6px 14px; border-radius: 4px; cursor: pointer; font-size: 12px; font-family: 'Courier New', monospace; transition: all 0.2s; }
+.filter-btn.active { background: #e0003c; border-color: #e0003c; color: #fff; font-weight: bold; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th { color: #e0003c; text-align: left; padding: 10px 12px; border-bottom: 2px solid #e0e0e0; font-size: 11px; letter-spacing: 1px; }
+td { padding: 10px 12px; border-bottom: 1px solid #f0f0f0; color: #333; vertical-align: top; }
+tr:hover td { background: #fafafa; }
+tr.checked td { opacity: 0.4; }
+td a { color: #e0003c; text-decoration: none; }
+td a:hover { text-decoration: underline; }
+.badge { font-size: 10px; padding: 2px 8px; border-radius: 3px; font-weight: bold; display: inline-block; }
+.badge-used { background: #00aa55; color: #fff; }
+.badge-junk { background: #e0003c; color: #fff; }
+.tax-badge { font-size: 9px; padding: 1px 5px; border-radius: 3px; display: inline-block; margin-left: 4px; }
+.tax-in { background: #ddd; color: #555; }
+.tax-ex { background: #fff3cd; color: #856404; }
+.check-btn { background: none; border: 1px solid #ddd; border-radius: 3px; width: 24px; height: 24px; cursor: pointer; font-size: 14px; line-height: 1; transition: all 0.2s; }
+.check-btn.checked { background: #00aa55; border-color: #00aa55; color: #fff; }
+.status { text-align: center; padding: 40px; color: #888; font-size: 13px; }
+.progress { color: #e0003c; font-size: 12px; text-align: center; padding: 20px; }
+.note { color: #aaa; font-size: 11px; margin-bottom: 12px; }
+.clear-btn { background: none; border: 1px solid #ddd; color: #888; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 11px; font-family: 'Courier New', monospace; }
+.clear-btn:hover { border-color: #e0003c; color: #e0003c; }
+</style>
 </head>
 <body>
-  <header>
-    <h1>KENJAGAMES // eBay Seller Finder</h1>
-    <p>潜在取引先セラー発掘ツール</p>
-  </header>
+<header>
+<h1>KENJAGAMES // Yahoo Auction Watcher</h1>
+<p>ヤフオク新着ゲーム機モニタリングツール</p>
+</header>
+<div class="container">
+<div class="card">
+<h2>▸ MONITOR CONFIG</h2>
+<p style="color:#888; font-size:12px; margin-bottom:16px;">
+監視対象：GBC / GBP / GBA / GBA SP / DS / DS Lite / DSi / DSi LL / 3DS / 3DS LL / PSP 1000・2000・3000
+</p>
+<button class="search-btn" id="searchBtn" onclick="startSearch()">🔍 新着を検索する</button>
+</div>
+<div class="card" id="resultsCard" style="display:none;">
+<div class="results-header">
+<h2>▸ RESULTS</h2>
+<span id="resultCount"></span>
+</div>
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+<div class="filter-btns" id="filterBtns"></div>
+<button class="clear-btn" onclick="clearChecked()">チェックをリセット</button>
+</div>
+<p class="note">※価格はヤフオク表示価格です。</p>
+<div id="progressLog"></div>
+<div id="resultsBody"></div>
+</div>
+</div>
+<script>
+let allItems = [];
+let currentFilter = 'all';
+let checkedLinks = new Set(JSON.parse(localStorage.getItem('checkedLinks') || '[]'));
 
-  <div class="container">
-    <div class="card">
-      <h2>▸ SEARCH CONFIG</h2>
-      <div class="keywords-section">
-        <label>KEYWORDS（最大3つ・結果は合算されます）</label>
-        <div class="keyword-row">
-          <span class="keyword-num">1.</span>
-          <input type="text" id="keyword1" placeholder="例: Game Boy Color Junk" value="Game Boy Color Junk">
-        </div>
-        <div class="keyword-row">
-          <span class="keyword-num">2.</span>
-          <input type="text" id="keyword2" placeholder="例: Game Boy Advance For Parts">
-        </div>
-        <div class="keyword-row">
-          <span class="keyword-num">3.</span>
-          <input type="text" id="keyword3" placeholder="例: Nintendo DS Not Working">
-        </div>
-      </div>
-      <div class="form-grid">
-        <div class="form-group">
-          <label>MIN FEEDBACK</label>
-          <input type="number" id="minFeedback" placeholder="例: 500" value="500">
-        </div>
-        <div class="form-group">
-          <label>MAX RESULTS（キーワードごと）</label>
-          <input type="number" id="itemsPerPage" placeholder="例: 100" value="100">
-        </div>
-      </div>
-      <div style="margin-top:16px;">
-        <label style="font-size:11px; color:#888; letter-spacing:1px;">MARKETS</label>
-        <div class="markets">
-          <button class="market-btn active" data-id="EBAY-US">🇺🇸 US</button>
-          <button class="market-btn active" data-id="EBAY-GB">🇬🇧 UK</button>
-          <button class="market-btn active" data-id="EBAY-AU">🇦🇺 AU</button>
-          <button class="market-btn active" data-id="EBAY-DE">🇩🇪 DE</button>
-          <button class="market-btn active" data-id="EBAY-FR">🇫🇷 FR</button>
-          <button class="market-btn active" data-id="EBAY-CA">🇨🇦 CA</button>
-        </div>
-      </div>
-      <button class="search-btn" id="searchBtn" onclick="startSearch()">🔍 SEARCH SELLERS</button>
-    </div>
+const MODEL_NAMES = [
+  'ゲームボーイカラー',
+  'ゲームボーイポケット',
+  'ゲームボーイアドバンス',
+  'ゲームボーイアドバンスSP',
+  'DS',
+  'DS Lite',
+  'DSi',
+  'DSi LL',
+  '3DS',
+  '3DS LL',
+  'PSP 1000',
+  'PSP 2000',
+  'PSP 3000',
+];
 
-    <div class="card" id="resultsCard" style="display:none;">
-      <div class="results-header">
-        <h2>▸ RESULTS</h2>
-        <span id="resultCount"></span>
-      </div>
-      <div class="legend">⭐ <span>優先セラー</span>：Game / Games / Gaming / Handheld / Retro / Console / Vintage / Nintendo / Mario がユーザー名に含まれるセラー（日本除外済み）</div>
-      <div id="progressLog"></div>
-      <div id="resultsBody"></div>
-    </div>
-  </div>
+function saveChecked() {
+  localStorage.setItem('checkedLinks', JSON.stringify([...checkedLinks]));
+}
 
-  <!-- Message Modal -->
-  <div class="msg-modal" id="msgModal">
-    <div class="msg-box">
-      <h3>▸ GENERATED MESSAGE</h3>
-      <div id="msgContent"></div>
-      <div class="msg-actions">
-        <button class="copy-btn" onclick="copyMessage()">📋 COPY MESSAGE</button>
-        <button class="close-btn" onclick="closeModal()">CLOSE</button>
-      </div>
-    </div>
-  </div>
+function toggleCheck(link, btn, row) {
+  if (checkedLinks.has(link)) {
+    checkedLinks.delete(link);
+    btn.classList.remove('checked');
+    btn.textContent = '';
+    row.classList.remove('checked');
+  } else {
+    checkedLinks.add(link);
+    btn.classList.add('checked');
+    btn.textContent = '✓';
+    row.classList.add('checked');
+  }
+  saveChecked();
+}
 
-  <script>
-    const countryFlags = {
-      'US': '🇺🇸', 'GB': '🇬🇧', 'AU': '🇦🇺', 'DE': '🇩🇪',
-      'FR': '🇫🇷', 'CA': '🇨🇦', 'JP': '🇯🇵', 'CN': '🇨🇳',
-      'IT': '🇮🇹', 'ES': '🇪🇸', 'NL': '🇳🇱', 'HK': '🇭🇰',
-    };
+function clearChecked() {
+  checkedLinks.clear();
+  saveChecked();
+  renderTable(allItems);
+}
 
-    const PRIORITY_KEYWORDS = [
-      'game', 'games', 'gaming', 'handheld', 'retro',
-      'console', 'consoles', 'vintage', 'nintendo', 'mario'
-    ];
+function toMinutes(endTimeStr) {
+  if (!endTimeStr) return 99999;
+  if (endTimeStr.includes('日')) {
+    const d = parseInt(endTimeStr);
+    return (isNaN(d) ? 99999 : d * 24 * 60);
+  }
+  if (endTimeStr.includes('時間')) {
+    const h = parseInt(endTimeStr);
+    return (isNaN(h) ? 99999 : h * 60);
+  }
+  if (endTimeStr.includes('分')) {
+    const m = parseInt(endTimeStr);
+    return (isNaN(m) ? 99999 : m);
+  }
+  if (endTimeStr.includes('秒')) return 1;
+  return 99999;
+}
 
-    function isPrioritySeller(username) {
-      const lower = username.toLowerCase();
-      return PRIORITY_KEYWORDS.some(kw => lower.includes(kw));
-    }
+function getBadge(status) {
+  if (status === '中古') return '<span class="badge badge-used">中古</span>';
+  if (status === 'ジャンク') return '<span class="badge badge-junk">ジャンク</span>';
+  return '';
+}
 
-    document.querySelectorAll('.market-btn').forEach(btn => {
-      btn.addEventListener('click', () => btn.classList.toggle('active'));
-    });
+function getTaxBadge(isStore) {
+  if (isStore) return '<span class="tax-badge tax-in">税込</span>';
+  return '<span class="tax-badge tax-ex">税抜</span>';
+}
 
-    async function startSearch() {
-      const keywords = [
-        document.getElementById('keyword1').value.trim(),
-        document.getElementById('keyword2').value.trim(),
-        document.getElementById('keyword3').value.trim(),
-      ].filter(k => k !== '');
+function calcTotal(price, postage) {
+  const p = parseInt(price);
+  if (isNaN(p)) return '-';
+  if (postage.includes('送料無料') || postage.includes('無料')) return '¥' + p.toLocaleString();
+  const match = postage.match(/[＋+]?(\d[\d,]+)円/);
+  if (match) {
+    const s = parseInt(match[1].replace(',', ''));
+    return '¥' + (p + s).toLocaleString();
+  }
+  return '-';
+}
 
-      const minFeedback = document.getElementById('minFeedback').value || 0;
-      const itemsPerPage = document.getElementById('itemsPerPage').value || 50;
-      const activeMarkets = [...document.querySelectorAll('.market-btn.active')].map(b => b.dataset.id);
+function buildFilterBtns() {
+  const container = document.getElementById('filterBtns');
+  const activeModels = MODEL_NAMES.filter(m => allItems.some(i => i.model === m));
+  const models = ['all', ...activeModels];
+  container.innerHTML = models.map(m => `
+    <button class="filter-btn ${m === currentFilter ? 'active' : ''}"
+      onclick="setFilter('${m}', this)">
+      ${m === 'all' ? 'すべて' : m}
+    </button>
+  `).join('');
+}
 
-      if (keywords.length === 0) { alert('キーワードを1つ以上入力してください'); return; }
-      if (activeMarkets.length === 0) { alert('マーケットを1つ以上選択してください'); return; }
+function renderTable(items) {
+  const filtered = currentFilter === 'all' ? items : items.filter(i => i.model === currentFilter);
+  document.getElementById('resultCount').textContent = `${filtered.length} 件表示 / 全${items.length}件`;
 
-      const btn = document.getElementById('searchBtn');
-      btn.disabled = true;
-      btn.textContent = '⏳ SEARCHING...';
+  if (filtered.length === 0) {
+    document.getElementById('resultsBody').innerHTML = '<div class="status">該当する商品が見つかりませんでした</div>';
+    return;
+  }
 
-      const resultsCard = document.getElementById('resultsCard');
-      const progressLog = document.getElementById('progressLog');
-      const resultsBody = document.getElementById('resultsBody');
-      resultsCard.style.display = 'block';
-      resultsBody.innerHTML = '';
-      progressLog.innerHTML = '<div class="status">検索中...</div>';
+  document.getElementById('resultsBody').innerHTML = `
+<table>
+<thead>
+<tr>
+<th></th>
+<th>機種</th>
+<th>商品名</th>
+<th>状態</th>
+<th>現在価格</th>
+<th>送料</th>
+<th>合計</th>
+<th>残り時間</th>
+</tr>
+</thead>
+<tbody>
+${filtered.map((item, i) => {
+  const isChecked = checkedLinks.has(item.link);
+  return `
+<tr class="${isChecked ? 'checked' : ''}" id="row-${i}">
+<td><button class="check-btn ${isChecked ? 'checked' : ''}" onclick="toggleCheck('${item.link}', this, document.getElementById('row-${i}'))">${isChecked ? '✓' : ''}</button></td>
+<td>${item.model}</td>
+<td><a href="${item.link}" target="_blank">${item.title}</a></td>
+<td>${getBadge(item.status)}</td>
+<td>¥${Number(item.price).toLocaleString()}${getTaxBadge(item.isStore)}</td>
+<td>${item.postage}</td>
+<td>${calcTotal(item.price, item.postage)}</td>
+<td>${item.endTime || '不明'}</td>
+</tr>`;
+}).join('')}
+</tbody>
+</table>`;
+}
 
-      const allSellers = {};
-      let totalRequests = keywords.length * activeMarkets.length;
-      let completed = 0;
+function setFilter(filter, btn) {
+  currentFilter = filter;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderTable(allItems);
+}
 
-      for (const keyword of keywords) {
-        for (const market of activeMarkets) {
-          try {
-            progressLog.innerHTML = `<div class="progress">🔍 検索中: "${keyword}" / ${market} (${completed + 1}/${totalRequests})</div>`;
-            const res = await fetch(`/api/search?keyword=${encodeURIComponent(keyword)}&globalId=${market}&itemsPerPage=${itemsPerPage}&minFeedback=${minFeedback}`);
-            const data = await res.json();
-            if (data.sellers) {
-              for (const seller of data.sellers) {
-                const key = seller.username;
-                if (!allSellers[key]) {
-                  allSellers[key] = { ...seller, markets: new Set(), keywords: new Set(), itemCount: 0 };
-                }
-                allSellers[key].markets.add(market);
-                allSellers[key].keywords.add(keyword);
-                allSellers[key].itemCount += seller.itemCount;
-              }
-            }
-          } catch (e) {
-            console.error(`Error for ${keyword} / ${market}:`, e);
-          }
-          completed++;
-        }
-      }
+async function startSearch() {
+  const btn = document.getElementById('searchBtn');
+  btn.disabled = true;
+  btn.textContent = '⏳ 検索中...';
+  const resultsCard = document.getElementById('resultsCard');
+  const progressLog = document.getElementById('progressLog');
+  resultsCard.style.display = 'block';
+  progressLog.innerHTML = '<div class="progress">ヤフオクから新着を取得中...</div>';
+  document.getElementById('resultsBody').innerHTML = '';
 
-      progressLog.innerHTML = '';
+  try {
+    const res = await fetch('/api/search');
+    const data = await res.json();
+    allItems = (data.items || []).sort((a, b) => toMinutes(a.endTime) - toMinutes(b.endTime));
+    progressLog.innerHTML = '';
+    currentFilter = 'all';
+    buildFilterBtns();
+    renderTable(allItems);
+  } catch (e) {
+    progressLog.innerHTML = '<div class="status" style="color:#e0003c;">エラーが発生しました。もう一度お試しください。</div>';
+  }
 
-      let sellers = Object.values(allSellers);
-
-  // Filter out sellers with rating below 97%
-      sellers = sellers.filter(s => {
-  const rating = parseFloat(s.feedbackPercentage);
-  return isNaN(rating) || rating >= 97;
-});
-      sellers.sort((a, b) => {
-        const aPriority = isPrioritySeller(a.username) ? 1 : 0;
-        const bPriority = isPrioritySeller(b.username) ? 1 : 0;
-        if (bPriority !== aPriority) return bPriority - aPriority;
-        return b.feedbackScore - a.feedbackScore;
-      });
-
-      const priorityCount = sellers.filter(s => isPrioritySeller(s.username)).length;
-      document.getElementById('resultCount').textContent = `${sellers.length} sellers found（うち優先: ${priorityCount}件）`;
-
-      if (sellers.length === 0) {
-        resultsBody.innerHTML = '<div class="status">条件に合うセラーが見つかりませんでした</div>';
-      } else {
-        resultsBody.innerHTML = `
-          <table>
-            <thead>
-              <tr>
-                <th>SELLER</th>
-                <th>SHIP FROM</th>
-                <th>MARKETS</th>
-                <th>FEEDBACK</th>
-                <th>RATING</th>
-                <th>ITEMS</th>
-                <th>ACTION</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${sellers.map(s => {
-                const flag = countryFlags[s.shipFrom] || '🌐';
-                const markets = [...s.markets].join(', ');
-                const kws = [...s.keywords].join(' / ');
-                const priority = isPrioritySeller(s.username);
-                return `
-                <tr class="${priority ? 'priority' : ''}">
-                  <td>
-                    <a href="https://www.ebay.com/usr/${s.username}" target="_blank">${s.username}</a>
-                    ${priority ? '<span class="priority-badge">⭐ 優先</span>' : ''}
-                  </td>
-                  <td>${flag} ${s.shipFrom}</td>
-                  <td>${markets}</td>
-                  <td>${s.feedbackScore.toLocaleString()}</td>
-                  <td>${s.feedbackPercentage}%</td>
-                  <td>${s.itemCount}</td>
-                  <td><button class="msg-btn" onclick="generateMessage('${s.username}', '${s.shipFrom}', '${markets}', ${s.feedbackScore}, '${s.feedbackPercentage}', '${kws}')">✉ MESSAGE</button></td>
-                </tr>`;
-              }).join('')}
-            </tbody>
-          </table>`;
-      }
-
-      btn.disabled = false;
-      btn.textContent = '🔍 SEARCH SELLERS';
-    }
-
-    async function generateMessage(username, shipFrom, markets, feedback, rating, keywords) {
-      document.getElementById('msgModal').classList.add('active');
-      document.getElementById('msgContent').innerHTML = '<div class="generating">⏳ メッセージを生成中...</div>';
-
-      try {
-        const response = await fetch('/api/message', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username, shipFrom, markets, feedback, rating, keywords })
-        });
-
-        const data = await response.json();
-
-        if (data.message) {
-          document.getElementById('msgContent').innerHTML = `<textarea id="msgText">${data.message}</textarea>`;
-        } else {
-          document.getElementById('msgContent').innerHTML = `<div class="generating" style="color:#ff2d6b;">エラー: ${data.error || '不明なエラー'}</div>`;
-        }
-      } catch (e) {
-        document.getElementById('msgContent').innerHTML = `<div class="generating" style="color:#ff2d6b;">エラーが発生しました。もう一度お試しください。</div>`;
-      }
-    }
-
-    function copyMessage() {
-      const textarea = document.getElementById('msgText');
-      if (textarea) {
-        textarea.select();
-        document.execCommand('copy');
-        alert('コピーしました！eBayメッセージに貼り付けてください。');
-      }
-    }
-
-    function closeModal() {
-      document.getElementById('msgModal').classList.remove('active');
-    }
-
-    window.addEventListener('click', (e) => {
-      if (e.target === document.getElementById('msgModal')) closeModal();
-    });
-  </script>
+  btn.disabled = false;
+  btn.textContent = '🔍 新着を検索する';
+}
+</script>
 </body>
 </html>
