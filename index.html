@@ -18,7 +18,7 @@ header p { color: #888; font-size: 12px; margin-top: 4px; }
 .search-btn:disabled { background: #ccc; cursor: not-allowed; }
 .results-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
 .results-header span { color: #888; font-size: 12px; }
-.filter-btns { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+.filter-btns { display: flex; gap: 8px; flex-wrap: wrap; }
 .filter-btn { background: #f5f5f5; border: 1px solid #ddd; color: #555; padding: 6px 14px; border-radius: 4px; cursor: pointer; font-size: 12px; font-family: 'Courier New', monospace; transition: all 0.2s; }
 .filter-btn.active { background: #e0003c; border-color: #e0003c; color: #fff; font-weight: bold; }
 table { width: 100%; border-collapse: collapse; font-size: 13px; }
@@ -41,6 +41,7 @@ td a:hover { text-decoration: underline; }
 .note { color: #aaa; font-size: 11px; margin-bottom: 12px; }
 .clear-btn { background: none; border: 1px solid #ddd; color: #888; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 11px; font-family: 'Courier New', monospace; }
 .clear-btn:hover { border-color: #e0003c; color: #e0003c; }
+.filter-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
 </style>
 </head>
 <body>
@@ -61,7 +62,7 @@ td a:hover { text-decoration: underline; }
 <h2>▸ RESULTS</h2>
 <span id="resultCount"></span>
 </div>
-<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+<div class="filter-row">
 <div class="filter-btns" id="filterBtns"></div>
 <button class="clear-btn" onclick="clearChecked()">チェックをリセット</button>
 </div>
