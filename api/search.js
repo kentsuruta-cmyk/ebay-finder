@@ -20,8 +20,8 @@ const MODELS = [
 const JUNK_WORDS = ['ジャンク', '動作未確認', '不動品', '動作不良'];
 
 const SEARCH_TYPES = [
-  { status: '中古', istatus: '2,3' },
   { status: 'ジャンク', istatus: '3,4,5' },
+  { status: '中古', istatus: '2,3' },
 ];
 
 async function searchYahooAuction(query, istatus) {
@@ -39,16 +39,23 @@ async function searchYahooAuction(query, istatus) {
   $('li.Product').each((_, el) => {
     const title = $(el).find('.Product__title').text().trim();
     const link = $(el).find('a.Product__titleLink').attr('href') || '';
-    const priceText = $(el).find('.Product__priceValue').text().trim().replace(/[^0-9]/g, '');
+    const priceRaw = $(el).find('.Product__priceValue').first().text().trim();
+    const price = priceRaw.replace(/[^0-9]/g, '');
     const endTimeText = $(el).find('.Product__time').text().trim();
+    const postageText = $(el).find('.Product__postage').text().trim();
+    const isStore = $(el).find('.Product__seller--store').length > 0
+      || $(el).find('.Product__label--tax').length > 0
+      || postageText.includes('税込');
 
     if (!title || !link) return;
 
     items.push({
       title,
       link,
-      price: priceText || '不明',
+      price: price || '不明',
       endTime: endTimeText,
+      postage: postageText || '送料不明',
+      isStore,
     });
   });
 
@@ -82,6 +89,8 @@ module.exports = async (req, res) => {
               price: item.price,
               endTime: item.endTime,
               status: JUNK_WORDS.some(w => item.title.includes(w)) ? 'ジャンク' : searchType.status,
+              postage: item.postage,
+              isStore: item.isStore,
             });
           }
         } catch (e) {
