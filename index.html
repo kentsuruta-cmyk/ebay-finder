@@ -18,9 +18,12 @@ header p { color: #888; font-size: 12px; margin-top: 4px; }
 .search-btn:disabled { background: #ccc; cursor: not-allowed; }
 .results-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
 .results-header span { color: #888; font-size: 12px; }
+.filter-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
 .filter-btns { display: flex; gap: 8px; flex-wrap: wrap; }
 .filter-btn { background: #f5f5f5; border: 1px solid #ddd; color: #555; padding: 6px 14px; border-radius: 4px; cursor: pointer; font-size: 12px; font-family: 'Courier New', monospace; transition: all 0.2s; }
 .filter-btn.active { background: #e0003c; border-color: #e0003c; color: #fff; font-weight: bold; }
+.clear-btn { background: none; border: 1px solid #ddd; color: #888; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 11px; font-family: 'Courier New', monospace; white-space: nowrap; }
+.clear-btn:hover { border-color: #e0003c; color: #e0003c; }
 table { width: 100%; border-collapse: collapse; font-size: 13px; }
 th { color: #e0003c; text-align: left; padding: 10px 12px; border-bottom: 2px solid #e0e0e0; font-size: 11px; letter-spacing: 1px; }
 td { padding: 10px 12px; border-bottom: 1px solid #f0f0f0; color: #333; vertical-align: top; }
@@ -34,14 +37,11 @@ td a:hover { text-decoration: underline; }
 .tax-badge { font-size: 9px; padding: 1px 5px; border-radius: 3px; display: inline-block; margin-left: 4px; }
 .tax-in { background: #ddd; color: #555; }
 .tax-ex { background: #fff3cd; color: #856404; }
-.check-btn { background: none; border: 1px solid #ddd; border-radius: 3px; width: 24px; height: 24px; cursor: pointer; font-size: 14px; line-height: 1; transition: all 0.2s; }
-.check-btn.checked { background: #00aa55; border-color: #00aa55; color: #fff; }
+.check-btn { background: none; border: 1px solid #ccc; border-radius: 3px; width: 24px; height: 24px; cursor: pointer; font-size: 13px; line-height: 22px; text-align: center; display: inline-block; transition: all 0.2s; }
+.check-btn.on { background: #00aa55; border-color: #00aa55; color: #fff; }
 .status { text-align: center; padding: 40px; color: #888; font-size: 13px; }
 .progress { color: #e0003c; font-size: 12px; text-align: center; padding: 20px; }
 .note { color: #aaa; font-size: 11px; margin-bottom: 12px; }
-.clear-btn { background: none; border: 1px solid #ddd; color: #888; padding: 4px 10px; border-radius: 4px; cursor: pointer; font-size: 11px; font-family: 'Courier New', monospace; }
-.clear-btn:hover { border-color: #e0003c; color: #e0003c; }
-.filter-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
 </style>
 </head>
 <body>
@@ -77,38 +77,13 @@ let currentFilter = 'all';
 let checkedLinks = new Set(JSON.parse(localStorage.getItem('checkedLinks') || '[]'));
 
 const MODEL_NAMES = [
-  'ゲームボーイカラー',
-  'ゲームボーイポケット',
-  'ゲームボーイアドバンス',
-  'ゲームボーイアドバンスSP',
-  'DS',
-  'DS Lite',
-  'DSi',
-  'DSi LL',
-  '3DS',
-  '3DS LL',
-  'PSP 1000',
-  'PSP 2000',
-  'PSP 3000',
+  'ゲームボーイカラー', 'ゲームボーイポケット', 'ゲームボーイアドバンス',
+  'ゲームボーイアドバンスSP', 'DS', 'DS Lite', 'DSi', 'DSi LL',
+  '3DS', '3DS LL', 'PSP 1000', 'PSP 2000', 'PSP 3000',
 ];
 
 function saveChecked() {
   localStorage.setItem('checkedLinks', JSON.stringify([...checkedLinks]));
-}
-
-function toggleCheck(link, btn, row) {
-  if (checkedLinks.has(link)) {
-    checkedLinks.delete(link);
-    btn.classList.remove('checked');
-    btn.textContent = '';
-    row.classList.remove('checked');
-  } else {
-    checkedLinks.add(link);
-    btn.classList.add('checked');
-    btn.textContent = '✓';
-    row.classList.add('checked');
-  }
-  saveChecked();
 }
 
 function clearChecked() {
@@ -117,21 +92,12 @@ function clearChecked() {
   renderTable(allItems);
 }
 
-function toMinutes(endTimeStr) {
-  if (!endTimeStr) return 99999;
-  if (endTimeStr.includes('日')) {
-    const d = parseInt(endTimeStr);
-    return (isNaN(d) ? 99999 : d * 24 * 60);
-  }
-  if (endTimeStr.includes('時間')) {
-    const h = parseInt(endTimeStr);
-    return (isNaN(h) ? 99999 : h * 60);
-  }
-  if (endTimeStr.includes('分')) {
-    const m = parseInt(endTimeStr);
-    return (isNaN(m) ? 99999 : m);
-  }
-  if (endTimeStr.includes('秒')) return 1;
+function toMinutes(s) {
+  if (!s) return 99999;
+  if (s.includes('日')) return (parseInt(s) || 99999) * 1440;
+  if (s.includes('時間')) return (parseInt(s) || 99999) * 60;
+  if (s.includes('分')) return parseInt(s) || 99999;
+  if (s.includes('秒')) return 1;
   return 99999;
 }
 
@@ -142,32 +108,27 @@ function getBadge(status) {
 }
 
 function getTaxBadge(isStore) {
-  if (isStore) return '<span class="tax-badge tax-in">税込</span>';
-  return '<span class="tax-badge tax-ex">税抜</span>';
+  return isStore
+    ? '<span class="tax-badge tax-in">税込</span>'
+    : '<span class="tax-badge tax-ex">税抜</span>';
 }
 
 function calcTotal(price, postage) {
   const p = parseInt(price);
   if (isNaN(p)) return '-';
-  if (postage.includes('送料無料') || postage.includes('無料')) return '¥' + p.toLocaleString();
-  const match = postage.match(/[＋+]?(\d[\d,]+)円/);
-  if (match) {
-    const s = parseInt(match[1].replace(',', ''));
-    return '¥' + (p + s).toLocaleString();
-  }
+  if (postage.includes('無料')) return '¥' + p.toLocaleString();
+  const m = postage.match(/(\d[\d,]+)円/);
+  if (m) return '¥' + (p + parseInt(m[1].replace(',', ''))).toLocaleString();
   return '-';
 }
 
 function buildFilterBtns() {
   const container = document.getElementById('filterBtns');
-  const activeModels = MODEL_NAMES.filter(m => allItems.some(i => i.model === m));
-  const models = ['all', ...activeModels];
-  container.innerHTML = models.map(m => `
-    <button class="filter-btn ${m === currentFilter ? 'active' : ''}"
-      onclick="setFilter('${m}', this)">
+  const active = MODEL_NAMES.filter(m => allItems.some(i => i.model === m));
+  container.innerHTML = ['all', ...active].map(m => `
+    <button class="filter-btn ${m === currentFilter ? 'active' : ''}" onclick="setFilter('${m}', this)">
       ${m === 'all' ? 'すべて' : m}
-    </button>
-  `).join('');
+    </button>`).join('');
 }
 
 function renderTable(items) {
@@ -179,26 +140,10 @@ function renderTable(items) {
     return;
   }
 
-  document.getElementById('resultsBody').innerHTML = `
-<table>
-<thead>
-<tr>
-<th></th>
-<th>機種</th>
-<th>商品名</th>
-<th>状態</th>
-<th>現在価格</th>
-<th>送料</th>
-<th>合計</th>
-<th>残り時間</th>
-</tr>
-</thead>
-<tbody>
-${filtered.map((item, i) => {
-  const isChecked = checkedLinks.has(item.link);
-  return `
-<tr class="${isChecked ? 'checked' : ''}" id="row-${i}">
-<td><button class="check-btn ${isChecked ? 'checked' : ''}" onclick="toggleCheck('${item.link}', this, document.getElementById('row-${i}'))">${isChecked ? '✓' : ''}</button></td>
+  const rows = filtered.map((item, i) => {
+    const checked = checkedLinks.has(item.link);
+    return `<tr class="${checked ? 'checked' : ''}" id="row${i}">
+<td><button class="check-btn ${checked ? 'on' : ''}" onclick="doCheck('${item.link}',${i})">${checked ? '✓' : ''}</button></td>
 <td>${item.model}</td>
 <td><a href="${item.link}" target="_blank">${item.title}</a></td>
 <td>${getBadge(item.status)}</td>
@@ -207,9 +152,30 @@ ${filtered.map((item, i) => {
 <td>${calcTotal(item.price, item.postage)}</td>
 <td>${item.endTime || '不明'}</td>
 </tr>`;
-}).join('')}
-</tbody>
+  }).join('');
+
+  document.getElementById('resultsBody').innerHTML = `
+<table>
+<thead><tr><th></th><th>機種</th><th>商品名</th><th>状態</th><th>現在価格</th><th>送料</th><th>合計</th><th>残り時間</th></tr></thead>
+<tbody>${rows}</tbody>
 </table>`;
+}
+
+function doCheck(link, i) {
+  const row = document.getElementById('row' + i);
+  const btn = row.querySelector('.check-btn');
+  if (checkedLinks.has(link)) {
+    checkedLinks.delete(link);
+    btn.classList.remove('on');
+    btn.textContent = '';
+    row.classList.remove('checked');
+  } else {
+    checkedLinks.add(link);
+    btn.classList.add('on');
+    btn.textContent = '✓';
+    row.classList.add('checked');
+  }
+  saveChecked();
 }
 
 function setFilter(filter, btn) {
@@ -223,22 +189,20 @@ async function startSearch() {
   const btn = document.getElementById('searchBtn');
   btn.disabled = true;
   btn.textContent = '⏳ 検索中...';
-  const resultsCard = document.getElementById('resultsCard');
-  const progressLog = document.getElementById('progressLog');
-  resultsCard.style.display = 'block';
-  progressLog.innerHTML = '<div class="progress">ヤフオクから新着を取得中...</div>';
+  document.getElementById('resultsCard').style.display = 'block';
+  document.getElementById('progressLog').innerHTML = '<div class="progress">ヤフオクから新着を取得中...</div>';
   document.getElementById('resultsBody').innerHTML = '';
 
   try {
     const res = await fetch('/api/search');
     const data = await res.json();
     allItems = (data.items || []).sort((a, b) => toMinutes(a.endTime) - toMinutes(b.endTime));
-    progressLog.innerHTML = '';
+    document.getElementById('progressLog').innerHTML = '';
     currentFilter = 'all';
     buildFilterBtns();
     renderTable(allItems);
   } catch (e) {
-    progressLog.innerHTML = '<div class="status" style="color:#e0003c;">エラーが発生しました。もう一度お試しください。</div>';
+    document.getElementById('progressLog').innerHTML = '<div class="status" style="color:#e0003c;">エラーが発生しました。もう一度お試しください。</div>';
   }
 
   btn.disabled = false;
