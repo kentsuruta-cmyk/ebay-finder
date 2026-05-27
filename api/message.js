@@ -20,7 +20,7 @@ module.exports = async (req, res) => {
     return res.status(500).json({ error: 'Missing API key' });
   }
 
-  const prompt = `You are writing a professional sales outreach message on behalf of Kenja Games, a Japanese wholesale supplier of retro handheld gaming consoles.
+  const prompt = `You are writing a professional sales outreach email on behalf of Kenja Games, a Japan-based wholesale supplier of retro handheld gaming consoles.
 
 Seller info:
 - eBay username: ${username}
@@ -30,21 +30,26 @@ Seller info:
 - Product keywords they sell: ${keywords}
 
 About Kenja Games:
-- Specializes in retro compact/handheld gaming consoles from Japan
+- Japan-based shop specializing in compact retro handheld consoles
 - Sells both JUNK condition and fully working USED units
-- Product lineup: GBC, GBA, GBA SP, PSP, DS, 3DS and similar
-- Also sells on eBay but primarily does B2B wholesale with game shops overseas
-- Store name online: kenjagames2 (ask them to search this online)
-- Pricing will be shared upon inquiry
+- Product lineup: Game Boy, Game Boy Color (GBC), Game Boy Advance (GBA), GBA SP, Nintendo DS, 3DS, 3DS LL (Japan import), PSP and similar
+- Currently NOT active on eBay (eBay store is on hold)
+- Operates via direct B2B transactions through Instagram and WhatsApp
+- Instagram: https://www.instagram.com/kenjagames2/
+- Previous eBay store for reference/credibility: https://www.ebay.com/str/myj04
+- Main clients are in the US, UK, and the Middle East
+- Run by Ken from Japan
 
 Rules for the message:
 - Write in English only
-- Keep it friendly, professional, and concise (max 5-6 sentences)
-- Do NOT suggest or imply direct/off-platform transactions
-- Mention that you noticed their store and think there could be a good fit
-- End by asking them to search "kenjagames2" online and reach out
-- Do NOT include subject line, just the message body
+- This email is sent DIRECTLY to the seller (not through eBay), so you CAN mention Instagram, WhatsApp, and direct trading
+- Keep it friendly, professional, and concise (5-6 sentences max)
+- Mention you noticed their store and think there could be a good fit
+- Include the Instagram link: https://www.instagram.com/kenjagames2/
+- Mention the previous eBay store as reference: https://www.ebay.com/str/myj04
+- Invite them to reach out via Instagram or email for pricing and availability
 - Tailor the message based on what they sell (${keywords})
+- Do NOT include a subject line, just the message body
 
 Write the message now:`;
 
