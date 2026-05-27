@@ -15,8 +15,8 @@
     .card h2 { color: #00ff88; font-size: 13px; letter-spacing: 3px; margin-bottom: 20px; }
     .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
     .form-group label { font-size: 11px; color: #888; letter-spacing: 1px; }
-    .form-group input { background: #0a0a0a; border: 1px solid #333; color: #fff; padding: 10px; border-radius: 4px; font-family: 'Courier New', monospace; font-size: 13px; }
-    .form-group input:focus { outline: none; border-color: #00ff88; }
+    .form-group input, .form-group textarea { background: #0a0a0a; border: 1px solid #333; color: #fff; padding: 10px; border-radius: 4px; font-family: 'Courier New', monospace; font-size: 13px; }
+    .form-group input:focus, .form-group textarea:focus { outline: none; border-color: #00ff88; }
     .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
     .keywords-section { margin-bottom: 16px; }
     .keywords-section label { font-size: 11px; color: #888; letter-spacing: 1px; display: block; margin-bottom: 8px; }
@@ -57,6 +57,8 @@
     .generating { color: #888; font-size: 12px; padding: 20px; text-align: center; }
     .legend { font-size: 11px; color: #888; margin-bottom: 12px; }
     .legend span { color: #00ff88; }
+    .note-input { width: 100%; background: #0a0a0a; border: 1px solid #333; color: #fff; padding: 8px; border-radius: 4px; font-family: 'Courier New', monospace; font-size: 11px; margin-top: 6px; resize: none; height: 50px; }
+    .note-input:focus { outline: none; border-color: #00ff88; }
   </style>
 </head>
 <body>
@@ -208,17 +210,17 @@
 
       let sellers = Object.values(allSellers);
 
-// Filter out sellers with rating below 97%
-sellers = sellers.filter(s => {
-  const rating = parseFloat(s.feedbackPercentage);
-  return isNaN(rating) || rating >= 97;
-});
-      
+      sellers = sellers.filter(s => {
+        const rating = parseFloat(s.feedbackPercentage);
+        return isNaN(rating) || rating >= 97;
+      });
+
       sellers.sort((a, b) => {
         const aPriority = isPrioritySeller(a.username) ? 1 : 0;
         const bPriority = isPrioritySeller(b.username) ? 1 : 0;
         if (bPriority !== aPriority) return bPriority - aPriority;
-        return b.feedbackScore - a.feedbackScore;
+        if (b.feedbackScore !== a.feedbackScore) return b.feedbackScore - a.feedbackScore;
+        return b.itemCount - a.itemCount;
       });
 
       const priorityCount = sellers.filter(s => isPrioritySeller(s.username)).length;
@@ -237,6 +239,7 @@ sellers = sellers.filter(s => {
                 <th>FEEDBACK</th>
                 <th>RATING</th>
                 <th>ITEMS</th>
+                <th>NOTE</th>
                 <th>ACTION</th>
               </tr>
             </thead>
@@ -257,6 +260,7 @@ sellers = sellers.filter(s => {
                   <td>${s.feedbackScore.toLocaleString()}</td>
                   <td>${s.feedbackPercentage}%</td>
                   <td>${s.itemCount}</td>
+                  <td><textarea class="note-input" id="note-${s.username}" placeholder="相手のストアについてメモ（例：GBAが充実）"></textarea></td>
                   <td><button class="msg-btn" onclick="generateMessage('${s.username}', '${s.shipFrom}', '${markets}', ${s.feedbackScore}, '${s.feedbackPercentage}', '${kws}')">✉ MESSAGE</button></td>
                 </tr>`;
               }).join('')}
@@ -269,6 +273,7 @@ sellers = sellers.filter(s => {
     }
 
     async function generateMessage(username, shipFrom, markets, feedback, rating, keywords) {
+      const note = document.getElementById(`note-${username}`)?.value || '';
       document.getElementById('msgModal').classList.add('active');
       document.getElementById('msgContent').innerHTML = '<div class="generating">⏳ メッセージを生成中...</div>';
 
@@ -276,7 +281,7 @@ sellers = sellers.filter(s => {
         const response = await fetch('/api/message', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username, shipFrom, markets, feedback, rating, keywords })
+          body: JSON.stringify({ username, shipFrom, markets, feedback, rating, keywords, note })
         });
 
         const data = await response.json();
@@ -296,7 +301,7 @@ sellers = sellers.filter(s => {
       if (textarea) {
         textarea.select();
         document.execCommand('copy');
-        alert('コピーしました！eBayメッセージに貼り付けてください。');
+        alert('コピーしました！メールに貼り付けてください。');
       }
     }
 
