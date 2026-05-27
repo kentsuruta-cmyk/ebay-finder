@@ -9,26 +9,36 @@ module.exports = async (req, res) => {
   const { query } = req.query;
   if (!query) return res.status(400).json({ error: 'Missing query parameter' });
 
-  const apiKey = process.env.GOOGLE_API_KEY;
-  const cx = process.env.GOOGLE_CX;
-  if (!apiKey || !cx) return res.status(500).json({ error: 'Missing Google API credentials' });
+  const apiKey = process.env.SERPER_API_KEY;
+  if (!apiKey) return res.status(500).json({ error: 'Missing Serper API key' });
 
   const REGIONS = [
-    { label: 'North America', query: `${query} North America -site:ebay.com` },
-    { label: 'Europe',        query: `${query} Europe -site:ebay.com` },
-    { label: 'Oceania',       query: `${query} Australia -site:ebay.com` },
-    { label: 'Middle East',   query: `${query} Middle East -site:ebay.com` },
+    { label: 'North America', gl: 'us', query: `${query} -site:ebay.com` },
+    { label: 'Europe',        gl: 'gb', query: `${query} Europe -site:ebay.com` },
+    { label: 'Oceania',       gl: 'au', query: `${query} -site:ebay.com` },
+    { label: 'Middle East',   gl: 'ae', query: `${query} -site:ebay.com` },
   ];
 
   const results = [];
 
   for (const region of REGIONS) {
     try {
-      const url = `https://www.googleapis.com/customsearch/v1?key=${apiKey}&cx=${cx}&q=${encodeURIComponent(region.query)}&num=10`;
-      const r = await fetch(url);
+      const r = await fetch('https://google.serper.dev/search', {
+        method: 'POST',
+        headers: {
+          'X-API-KEY': apiKey,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          q: region.query,
+          gl: region.gl,
+          hl: 'en',
+          num: 10,
+        }),
+      });
       const data = await r.json();
-      if (data.items) {
-        for (const item of data.items) {
+      if (data.organic) {
+        for (const item of data.organic) {
           results.push({
             region: region.label,
             title: item.title,
