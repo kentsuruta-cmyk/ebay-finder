@@ -13,10 +13,10 @@ module.exports = async (req, res) => {
   if (!apiKey) return res.status(500).json({ error: 'Missing Serper API key' });
 
   const REGIONS = [
-    { label: 'North America', gl: 'us', query: `${query} -site:ebay.com` },
-    { label: 'Europe',        gl: 'gb', query: `${query} Europe -site:ebay.com` },
-    { label: 'Oceania',       gl: 'au', query: `${query} -site:ebay.com` },
-    { label: 'Middle East',   gl: 'ae', query: `${query} -site:ebay.com` },
+    { label: 'North America', gl: 'us', query: `${query} -site:ebay.com -site:yelp.com -site:reddit.com -site:youtube.com` },
+    { label: 'Europe',        gl: 'gb', query: `${query} Europe -site:ebay.com -site:yelp.com -site:reddit.com -site:youtube.com` },
+    { label: 'Oceania',       gl: 'au', query: `${query} -site:ebay.com -site:yelp.com -site:reddit.com -site:youtube.com` },
+    { label: 'Middle East',   gl: 'ae', query: `${query} -site:ebay.com -site:yelp.com -site:reddit.com -site:youtube.com` },
   ];
 
   const results = [];
