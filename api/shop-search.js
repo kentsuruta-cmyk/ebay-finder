@@ -14,10 +14,10 @@ module.exports = async (req, res) => {
   if (!apiKey || !cx) return res.status(500).json({ error: 'Missing Google API credentials' });
 
   const REGIONS = [
-    { label: 'North America', query: `${query} North America` },
-    { label: 'Europe',        query: `${query} Europe` },
-    { label: 'Oceania',       query: `${query} Australia` },
-    { label: 'Middle East',   query: `${query} Middle East` },
+    { label: 'North America', query: `${query} North America -site:ebay.com` },
+    { label: 'Europe',        query: `${query} Europe -site:ebay.com` },
+    { label: 'Oceania',       query: `${query} Australia -site:ebay.com` },
+    { label: 'Middle East',   query: `${query} Middle East -site:ebay.com` },
   ];
 
   const results = [];
