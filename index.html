@@ -15,8 +15,8 @@
     .card h2 { color: #00ff88; font-size: 13px; letter-spacing: 3px; margin-bottom: 20px; }
     .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
     .form-group label { font-size: 11px; color: #888; letter-spacing: 1px; }
-    .form-group input, .form-group textarea { background: #0a0a0a; border: 1px solid #333; color: #fff; padding: 10px; border-radius: 4px; font-family: 'Courier New', monospace; font-size: 13px; }
-    .form-group input:focus, .form-group textarea:focus { outline: none; border-color: #00ff88; }
+    .form-group input { background: #0a0a0a; border: 1px solid #333; color: #fff; padding: 10px; border-radius: 4px; font-family: 'Courier New', monospace; font-size: 13px; }
+    .form-group input:focus { outline: none; border-color: #00ff88; }
     .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
     .keywords-section { margin-bottom: 16px; }
     .keywords-section label { font-size: 11px; color: #888; letter-spacing: 1px; display: block; margin-bottom: 8px; }
@@ -34,15 +34,13 @@
     .results-header span { color: #888; font-size: 12px; }
     table { width: 100%; border-collapse: collapse; font-size: 13px; }
     th { color: #00ff88; text-align: left; padding: 10px 12px; border-bottom: 1px solid #2a2a2a; font-size: 11px; letter-spacing: 1px; }
-    td { padding: 10px 12px; border-bottom: 1px solid #1a1a1a; color: #ccc; vertical-align: top; }
+    td { padding: 12px; border-bottom: 1px solid #1a1a1a; color: #ccc; }
     tr:hover td { background: #1a1a1a; }
-    tr.priority td { background: #0a1a0a; border-left: 3px solid #00ff88; }
-    tr.priority:hover td { background: #0f2a0f; }
     td a { color: #00ff88; text-decoration: none; }
     td a:hover { text-decoration: underline; }
     .status { text-align: center; padding: 40px; color: #888; font-size: 13px; }
     .progress { color: #00ff88; font-size: 12px; margin-bottom: 8px; }
-    .msg-btn { background: #1a1a2e; border: 1px solid #444; color: #00ff88; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 11px; font-family: 'Courier New', monospace; white-space: nowrap; }
+    .msg-btn { background: #1a1a1a; border: 1px solid #00ff88; color: #00ff88; padding: 5px 10px; border-radius: 3px; cursor: pointer; font-size: 11px; font-family: 'Courier New', monospace; white-space: nowrap; }
     .msg-btn:hover { background: #00ff88; color: #000; }
     .priority-badge { background: #00ff88; color: #000; font-size: 10px; padding: 2px 6px; border-radius: 3px; font-weight: bold; margin-left: 6px; }
     .msg-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center; }
@@ -57,8 +55,7 @@
     .generating { color: #888; font-size: 12px; padding: 20px; text-align: center; }
     .legend { font-size: 11px; color: #888; margin-bottom: 12px; }
     .legend span { color: #00ff88; }
-    .note-input { width: 100%; background: #0a0a0a; border: 1px solid #333; color: #fff; padding: 8px; border-radius: 4px; font-family: 'Courier New', monospace; font-size: 11px; margin-top: 6px; resize: none; height: 50px; }
-    .note-input:focus { outline: none; border-color: #00ff88; }
+    tr.priority-row td:first-child { border-left: 2px solid #00ff88; }
   </style>
 </head>
 <body>
@@ -139,30 +136,27 @@
       'IT': '🇮🇹', 'ES': '🇪🇸', 'NL': '🇳🇱', 'HK': '🇭🇰',
     };
 
-    const marketDomains = {
-      'EBAY-US': 'ebay.com',
-      'EBAY-GB': 'ebay.co.uk',
-      'EBAY-AU': 'ebay.com.au',
-      'EBAY-DE': 'ebay.de',
-      'EBAY-FR': 'ebay.fr',
-      'EBAY-CA': 'ebay.ca',
-    };
-
     const PRIORITY_KEYWORDS = [
       'game', 'games', 'gaming', 'handheld', 'retro',
       'console', 'consoles', 'vintage', 'nintendo', 'mario'
     ];
 
+    function getSellerUrl(username, market) {
+      const domainMap = {
+        'EBAY-US': 'https://www.ebay.com',
+        'EBAY-GB': 'https://www.ebay.co.uk',
+        'EBAY-AU': 'https://www.ebay.com.au',
+        'EBAY-DE': 'https://www.ebay.de',
+        'EBAY-FR': 'https://www.ebay.fr',
+        'EBAY-CA': 'https://www.ebay.ca',
+      };
+      const base = domainMap[market] || 'https://www.ebay.com';
+      return `${base}/usr/${username}`;
+    }
+
     function isPrioritySeller(username) {
       const lower = username.toLowerCase();
       return PRIORITY_KEYWORDS.some(kw => lower.includes(kw));
-    }
-
-    function getSellerUrl(username, markets) {
-      const marketList = markets.split(', ');
-      const firstMarket = marketList[0]?.trim();
-      const domain = marketDomains[firstMarket] || 'ebay.com';
-      return `https://www.${domain}/usr/${username}`;
     }
 
     document.querySelectorAll('.market-btn').forEach(btn => {
@@ -177,7 +171,7 @@
       ].filter(k => k !== '');
 
       const minFeedback = document.getElementById('minFeedback').value || 0;
-      const itemsPerPage = document.getElementById('itemsPerPage').value || 50;
+      const itemsPerPage = document.getElementById('itemsPerPage').value || 100;
       const activeMarkets = [...document.querySelectorAll('.market-btn.active')].map(b => b.dataset.id);
 
       if (keywords.length === 0) { alert('キーワードを1つ以上入力してください'); return; }
@@ -208,7 +202,12 @@
               for (const seller of data.sellers) {
                 const key = seller.username;
                 if (!allSellers[key]) {
-                  allSellers[key] = { ...seller, markets: new Set(), keywords: new Set(), itemCount: 0 };
+                  allSellers[key] = {
+                    ...seller,
+                    markets: new Set(),
+                    keywords: new Set(),
+                    itemCount: 0,
+                  };
                 }
                 allSellers[key].markets.add(market);
                 allSellers[key].keywords.add(keyword);
@@ -223,24 +222,14 @@
       }
 
       progressLog.innerHTML = '';
-
-      let sellers = Object.values(allSellers);
-
-      sellers = sellers.filter(s => {
-        const rating = parseFloat(s.feedbackPercentage);
-        return isNaN(rating) || rating >= 97;
+      const sellers = Object.values(allSellers).sort((a, b) => {
+        const ap = isPrioritySeller(a.username) ? 1 : 0;
+        const bp = isPrioritySeller(b.username) ? 1 : 0;
+        if (bp !== ap) return bp - ap;
+        return b.feedbackScore - a.feedbackScore;
       });
 
-      sellers.sort((a, b) => {
-        const aPriority = isPrioritySeller(a.username) ? 1 : 0;
-        const bPriority = isPrioritySeller(b.username) ? 1 : 0;
-        if (bPriority !== aPriority) return bPriority - aPriority;
-        if (b.feedbackScore !== a.feedbackScore) return b.feedbackScore - a.feedbackScore;
-        return b.itemCount - a.itemCount;
-      });
-
-      const priorityCount = sellers.filter(s => isPrioritySeller(s.username)).length;
-      document.getElementById('resultCount').textContent = `${sellers.length} sellers found（うち優先: ${priorityCount}件）`;
+      document.getElementById('resultCount').textContent = `${sellers.length} sellers found`;
 
       if (sellers.length === 0) {
         resultsBody.innerHTML = '<div class="status">条件に合うセラーが見つかりませんでした</div>';
@@ -255,30 +244,30 @@
                 <th>FEEDBACK</th>
                 <th>RATING</th>
                 <th>ITEMS</th>
-                <th>NOTE</th>
                 <th>ACTION</th>
               </tr>
             </thead>
             <tbody>
               ${sellers.map(s => {
                 const flag = countryFlags[s.shipFrom] || '🌐';
-                const markets = [...s.markets].join(', ');
+                const marketsArr = [...s.markets];
+                const marketsStr = marketsArr.join(', ');
                 const kws = [...s.keywords].join(' / ');
                 const priority = isPrioritySeller(s.username);
-                const sellerUrl = getSellerUrl(s.username, markets);
+                const primaryMarket = marketsArr[0];
+                const sellerUrl = getSellerUrl(s.username, primaryMarket);
                 return `
-                <tr class="${priority ? 'priority' : ''}">
+                <tr class="${priority ? 'priority-row' : ''}">
                   <td>
                     <a href="${sellerUrl}" target="_blank">${s.username}</a>
                     ${priority ? '<span class="priority-badge">⭐ 優先</span>' : ''}
                   </td>
                   <td>${flag} ${s.shipFrom}</td>
-                  <td>${markets}</td>
+                  <td>${marketsStr}</td>
                   <td>${s.feedbackScore.toLocaleString()}</td>
                   <td>${s.feedbackPercentage}%</td>
                   <td>${s.itemCount}</td>
-                  <td><textarea class="note-input" id="note-${s.username}" placeholder="相手のストアについてメモ（例：GBAが充実）"></textarea></td>
-                  <td><button class="msg-btn" onclick="generateMessage('${s.username}', '${s.shipFrom}', '${markets}', ${s.feedbackScore}, '${s.feedbackPercentage}', '${kws}')">✉ MESSAGE</button></td>
+                  <td><button class="msg-btn" onclick="generateMessage('${s.username}', '${s.shipFrom}', '${marketsStr}', ${s.feedbackScore}, '${s.feedbackPercentage}', '${kws}')">✉ MESSAGE</button></td>
                 </tr>`;
               }).join('')}
             </tbody>
@@ -290,23 +279,61 @@
     }
 
     async function generateMessage(username, shipFrom, markets, feedback, rating, keywords) {
-      const note = document.getElementById(`note-${username}`)?.value || '';
       document.getElementById('msgModal').classList.add('active');
       document.getElementById('msgContent').innerHTML = '<div class="generating">⏳ メッセージを生成中...</div>';
 
+      const prompt = `You are writing a professional sales outreach message on behalf of Kenja Games, a Japanese wholesale supplier of retro handheld gaming consoles.
+
+Seller info:
+- eBay username: ${username}
+- Ships from: ${shipFrom}
+- Active markets: ${markets}
+- Feedback score: ${feedback} (${rating}%)
+- Product keywords they sell: ${keywords}
+
+About Kenja Games:
+- Japan-based shop specializing in compact retro handheld consoles
+- Sells both JUNK condition and fully working USED units
+- Product lineup: Game Boy, Game Boy Color (GBC), Game Boy Advance (GBA), GBA SP, Nintendo DS, 3DS, 3DS LL (Japan import), PSP and similar
+- Currently NOT active on eBay (eBay store is on hold)
+- Operates via direct B2B transactions through Instagram and WhatsApp
+- Instagram: https://www.instagram.com/kenjagames2/
+- Previous eBay store for reference/credibility: https://www.ebay.com/str/myj04
+- Main clients are in the US, UK, and the Middle East
+- Run by Ken from Japan
+
+Rules for the message:
+- Write in English only
+- This message is sent DIRECTLY to the seller (not through eBay), so you CAN mention Instagram, WhatsApp, and direct trading
+- Keep it friendly, professional, and concise (5-6 sentences max)
+- Mention you noticed their store and think there could be a good fit
+- Include the Instagram link: https://www.instagram.com/kenjagames2/
+- Mention the previous eBay store as reference: https://www.ebay.com/str/myj04
+- Invite them to reach out via Instagram or email for pricing and availability
+- Tailor the message based on what they sell (${keywords})
+- Do NOT include a subject line, just the message body
+
+Write the message now:`;
+
       try {
-        const response = await fetch('/api/message', {
+        const response = await fetch('https://api.anthropic.com/v1/messages', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username, shipFrom, markets, feedback, rating, keywords, note })
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'claude-sonnet-4-20250514',
+            max_tokens: 1000,
+            messages: [{ role: 'user', content: prompt }]
+          })
         });
 
         const data = await response.json();
 
-        if (data.message) {
-          document.getElementById('msgContent').innerHTML = `<textarea id="msgText">${data.message}</textarea>`;
+        if (data.content && data.content[0] && data.content[0].text) {
+          document.getElementById('msgContent').innerHTML = `<textarea id="msgText">${data.content[0].text}</textarea>`;
         } else {
-          document.getElementById('msgContent').innerHTML = `<div class="generating" style="color:#ff2d6b;">エラー: ${data.error || '不明なエラー'}</div>`;
+          document.getElementById('msgContent').innerHTML = `<div class="generating" style="color:#ff2d6b;">エラー: ${data.error?.message || '不明なエラー'}</div>`;
         }
       } catch (e) {
         document.getElementById('msgContent').innerHTML = `<div class="generating" style="color:#ff2d6b;">エラーが発生しました。もう一度お試しください。</div>`;
@@ -318,7 +345,7 @@
       if (textarea) {
         textarea.select();
         document.execCommand('copy');
-        alert('コピーしました！メールに貼り付けてください。');
+        alert('コピーしました！');
       }
     }
 
