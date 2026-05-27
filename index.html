@@ -139,6 +139,15 @@
       'IT': '🇮🇹', 'ES': '🇪🇸', 'NL': '🇳🇱', 'HK': '🇭🇰',
     };
 
+    const marketDomains = {
+      'EBAY-US': 'ebay.com',
+      'EBAY-GB': 'ebay.co.uk',
+      'EBAY-AU': 'ebay.com.au',
+      'EBAY-DE': 'ebay.de',
+      'EBAY-FR': 'ebay.fr',
+      'EBAY-CA': 'ebay.ca',
+    };
+
     const PRIORITY_KEYWORDS = [
       'game', 'games', 'gaming', 'handheld', 'retro',
       'console', 'consoles', 'vintage', 'nintendo', 'mario'
@@ -147,6 +156,13 @@
     function isPrioritySeller(username) {
       const lower = username.toLowerCase();
       return PRIORITY_KEYWORDS.some(kw => lower.includes(kw));
+    }
+
+    function getSellerUrl(username, markets) {
+      const marketList = markets.split(', ');
+      const firstMarket = marketList[0]?.trim();
+      const domain = marketDomains[firstMarket] || 'ebay.com';
+      return `https://www.${domain}/usr/${username}`;
     }
 
     document.querySelectorAll('.market-btn').forEach(btn => {
@@ -249,10 +265,11 @@
                 const markets = [...s.markets].join(', ');
                 const kws = [...s.keywords].join(' / ');
                 const priority = isPrioritySeller(s.username);
+                const sellerUrl = getSellerUrl(s.username, markets);
                 return `
                 <tr class="${priority ? 'priority' : ''}">
                   <td>
-                    <a href="https://www.ebay.com/usr/${s.username}" target="_blank">${s.username}</a>
+                    <a href="${sellerUrl}" target="_blank">${s.username}</a>
                     ${priority ? '<span class="priority-badge">⭐ 優先</span>' : ''}
                   </td>
                   <td>${flag} ${s.shipFrom}</td>
