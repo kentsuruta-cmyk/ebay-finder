@@ -400,42 +400,50 @@
       btn.disabled = false; btn.textContent = '🔍 SEARCH SHOPS';
     }
 
+    // SNSアイコンを更新する関数
+    function updateContactIcons(username, contactInfo) {
+      const row = document.querySelector(`tr[data-username="${username}"]`);
+      if (!row) return;
+      const defs = [
+        { key: 'web',   cls: 'icon-web',   label: 'HP',   isLink: true },
+        { key: 'email', cls: 'icon-email', label: 'Mail', isLink: false },
+        { key: 'fb',    cls: 'icon-fb',    label: 'FB',   isLink: true },
+        { key: 'ig',    cls: 'icon-ig',    label: 'IG',   isLink: true },
+        { key: 'x',     cls: 'icon-x',     label: 'X',    isLink: true },
+        { key: 'wa',    cls: 'icon-wa',    label: 'WA',   isLink: false },
+      ];
+      const cells = row.querySelectorAll('.contact-col');
+      defs.forEach((d, i) => {
+        const val = contactInfo[d.key];
+        if (val === undefined || val === null) return;
+        const cell = cells[i];
+        if (!cell) return;
+        if (val === false) {
+          cell.innerHTML = `<div class="contact-cell"><span class="contact-icon not-found ${d.cls}" title="${d.label}: なし">—</span></div>`;
+        } else {
+          const tag = d.isLink ? `a href="${val}" target="_blank"` : 'span';
+          const close = d.isLink ? 'a' : 'span';
+          cell.innerHTML = `<div class="contact-cell"><${tag} class="contact-icon found ${d.cls}" title="${d.label}: ${val}">${d.label}</${close}></div>`;
+        }
+      });
+    }
+
     async function generateMessage(username, shipFrom, markets, feedback, rating, keywords) {
       document.getElementById('msgModal').classList.add('active');
-      document.getElementById('msgContent').innerHTML = '<div class="generating">⏳ メッセージを生成中...</div>';
-      const prompt = `You are writing a professional sales outreach message on behalf of Kenja Games, a Japanese wholesale supplier of retro handheld gaming consoles.
-Seller info:
-- eBay username: ${username}
-- Ships from: ${shipFrom}
-- Active markets: ${markets}
-- Feedback score: ${feedback} (${rating}%)
-- Product keywords they sell: ${keywords}
-About Kenja Games:
-- Japan-based shop specializing in compact retro handheld consoles
-- Sells both JUNK condition and fully working USED units
-- Product lineup: Game Boy, GBC, GBA, GBA SP, Nintendo DS, 3DS, 3DS LL, PSP
-- Currently NOT active on eBay
-- Operates via direct B2B transactions through Instagram and WhatsApp
-- Instagram: https://www.instagram.com/kenjagames2/
-- Previous eBay store: https://www.ebay.com/str/myj04
-- Main clients are in the US, UK, and the Middle East
-Rules:
-- Write in English only
-- Keep it friendly, professional, concise (5-6 sentences max)
-- Include Instagram link and previous eBay store as reference
-- Do NOT include a subject line
-Write the message now:`;
+      document.getElementById('msgContent').innerHTML = '<div class="generating">⏳ SNS情報を取得中... (Web Search)</div>';
       try {
-        const response = await fetch('https://api.anthropic.com/v1/messages', {
+        const response = await fetch('/api/message', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 1000, messages: [{ role: 'user', content: prompt }] })
+          body: JSON.stringify({ username, shipFrom, markets, feedback, rating, keywords })
         });
         const data = await response.json();
-        if (data.content && data.content[0] && data.content[0].text) {
-          document.getElementById('msgContent').innerHTML = `<textarea id="msgText">${data.content[0].text}</textarea>`;
+        if (data.message) {
+          document.getElementById('msgContent').innerHTML = `<textarea id="msgText">${data.message}</textarea>`;
+          // SNSアイコンを更新
+          if (data.contactInfo) updateContactIcons(username, data.contactInfo);
         } else {
-          document.getElementById('msgContent').innerHTML = `<div class="generating" style="color:#ff2d6b;">エラー: ${data.error?.message || '不明なエラー'}</div>`;
+          document.getElementById('msgContent').innerHTML = `<div class="generating" style="color:#ff2d6b;">エラー: ${data.error || '不明なエラー'}</div>`;
         }
       } catch (e) {
         document.getElementById('msgContent').innerHTML = `<div class="generating" style="color:#ff2d6b;">エラーが発生しました</div>`;
