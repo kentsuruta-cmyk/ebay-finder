@@ -38,17 +38,90 @@
     .search-btn:disabled { background: #444; cursor: not-allowed; }
     .results-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
     .results-header span { color: #888; font-size: 12px; }
+    .status { text-align: center; padding: 40px; color: #888; font-size: 13px; }
+    .progress { color: #00ff88; font-size: 12px; margin-bottom: 8px; }
+    .legend { font-size: 11px; color: #888; margin-bottom: 16px; }
+    .legend span { color: #00ff88; }
+
+    /* ── Seller Table ── */
+    .seller-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .seller-table th {
+      color: #555;
+      text-align: center;
+      padding: 8px 10px;
+      border-bottom: 1px solid #2a2a2a;
+      font-size: 10px;
+      letter-spacing: 1px;
+      white-space: nowrap;
+    }
+    .seller-table th.left { text-align: left; }
+    .seller-table td {
+      padding: 10px;
+      border-bottom: 1px solid #1a1a1a;
+      color: #ccc;
+      vertical-align: middle;
+      text-align: center;
+    }
+    .seller-table td.left { text-align: left; }
+    .seller-table tr:hover td { background: #161616; }
+    .seller-table tr.priority-row td:first-child { border-left: 2px solid #00ff88; }
+
+    .seller-name-wrap { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+    .seller-name-wrap a { color: #00ff88; text-decoration: none; font-size: 12px; }
+    .seller-name-wrap a:hover { text-decoration: underline; }
+    .priority-badge { background: #00ff88; color: #000; font-size: 9px; padding: 1px 5px; border-radius: 2px; font-weight: bold; white-space: nowrap; }
+
+    /* Contact cell icons */
+    .contact-cell { display: flex; justify-content: center; align-items: center; }
+    .contact-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px; height: 22px;
+      border-radius: 3px;
+      font-size: 10px;
+      font-weight: bold;
+      text-decoration: none;
+      cursor: default;
+    }
+    .contact-icon.unknown { color: #333; font-size: 13px; }
+    .contact-icon.found   { cursor: pointer; }
+    .contact-icon.not-found { color: #2a2a2a; font-size: 13px; }
+
+    .icon-web.found   { background: #1f3a2a; color: #00ff88; border: 1px solid #00ff88; }
+    .icon-ig.found    { background: #3a1520; color: #e1306c; border: 1px solid #e1306c; }
+    .icon-fb.found    { background: #101e3a; color: #1877f2; border: 1px solid #1877f2; }
+    .icon-email.found { background: #2a2010; color: #f59e0b; border: 1px solid #f59e0b; }
+    .icon-wa.found    { background: #0d2a1a; color: #25d366; border: 1px solid #25d366; }
+    .icon-x.found     { background: #1a1a1a; color: #fff;    border: 1px solid #555; }
+
+    .market-tags { display: flex; gap: 4px; flex-wrap: wrap; justify-content: center; }
+    .market-tag { font-size: 9px; padding: 1px 5px; border-radius: 2px; background: #1a1a1a; border: 1px solid #2a2a2a; color: #888; white-space: nowrap; }
+
+    .rating-high { color: #00ff88; }
+    .rating-mid  { color: #f59e0b; }
+    .rating-low  { color: #888; }
+
+    .msg-btn { background: #1a1a1a; border: 1px solid #00ff88; color: #00ff88; padding: 5px 10px; border-radius: 3px; cursor: pointer; font-size: 10px; font-family: 'Courier New', monospace; white-space: nowrap; }
+    .msg-btn:hover { background: #00ff88; color: #000; }
+
+    /* Shop results (unchanged) */
     table { width: 100%; border-collapse: collapse; font-size: 13px; }
     th { color: #00ff88; text-align: left; padding: 10px 12px; border-bottom: 1px solid #2a2a2a; font-size: 11px; letter-spacing: 1px; }
     td { padding: 12px; border-bottom: 1px solid #1a1a1a; color: #ccc; }
     tr:hover td { background: #1a1a1a; }
     td a { color: #00ff88; text-decoration: none; }
     td a:hover { text-decoration: underline; }
-    .status { text-align: center; padding: 40px; color: #888; font-size: 13px; }
-    .progress { color: #00ff88; font-size: 12px; margin-bottom: 8px; }
-    .msg-btn { background: #1a1a1a; border: 1px solid #00ff88; color: #00ff88; padding: 5px 10px; border-radius: 3px; cursor: pointer; font-size: 11px; font-family: 'Courier New', monospace; white-space: nowrap; }
-    .msg-btn:hover { background: #00ff88; color: #000; }
-    .priority-badge { background: #00ff88; color: #000; font-size: 10px; padding: 2px 6px; border-radius: 3px; font-weight: bold; margin-left: 6px; }
+    .platform-badge { font-size: 10px; padding: 2px 7px; border-radius: 3px; font-weight: bold; margin-left: 6px; }
+    .badge-ig-shop { background: #e1306c; color: #fff; }
+    .badge-fb-shop { background: #1877f2; color: #fff; }
+    .badge-ebay { background: #e53238; color: #fff; }
+    .badge-etsy { background: #f56400; color: #fff; }
+    .badge-web-shop { background: #333; color: #aaa; }
+    .region-badge { font-size: 10px; padding: 2px 8px; border-radius: 3px; background: #1a1a1a; border: 1px solid #333; color: #888; }
+    .snippet-text { font-size: 11px; color: #666; margin-top: 4px; line-height: 1.4; }
+
+    /* Modal */
     .msg-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center; }
     .msg-modal.active { display: flex; }
     .msg-box { background: #141414; border: 1px solid #333; border-radius: 8px; padding: 30px; width: 90%; max-width: 640px; max-height: 80vh; overflow-y: auto; }
@@ -59,17 +132,6 @@
     .copy-btn { flex: 1; background: #00ff88; border: none; color: #000; padding: 10px; border-radius: 4px; cursor: pointer; font-family: 'Courier New', monospace; font-size: 12px; font-weight: bold; }
     .close-btn { background: #333; border: none; color: #fff; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-family: 'Courier New', monospace; font-size: 12px; }
     .generating { color: #888; font-size: 12px; padding: 20px; text-align: center; }
-    .legend { font-size: 11px; color: #888; margin-bottom: 12px; }
-    .legend span { color: #00ff88; }
-    tr.priority-row td:first-child { border-left: 2px solid #00ff88; }
-    .platform-badge { font-size: 10px; padding: 2px 7px; border-radius: 3px; font-weight: bold; margin-left: 6px; }
-    .badge-ig { background: #e1306c; color: #fff; }
-    .badge-fb { background: #1877f2; color: #fff; }
-    .badge-ebay { background: #e53238; color: #fff; }
-    .badge-etsy { background: #f56400; color: #fff; }
-    .badge-web { background: #333; color: #aaa; }
-    .region-badge { font-size: 10px; padding: 2px 8px; border-radius: 3px; background: #1a1a1a; border: 1px solid #333; color: #888; }
-    .snippet-text { font-size: 11px; color: #666; margin-top: 4px; line-height: 1.4; }
   </style>
 </head>
 <body>
@@ -110,9 +172,13 @@
         </div>
         <button class="search-btn" id="searchBtn" onclick="startSearch()">🔍 SEARCH SELLERS</button>
       </div>
+
       <div class="card" id="resultsCard" style="display:none;">
         <div class="results-header"><h2>▸ RESULTS</h2><span id="resultCount"></span></div>
-        <div class="legend">⭐ <span>優先セラー</span>：Game / Games / Gaming / Handheld / Retro / Console / Vintage / Nintendo / Mario がユーザー名に含まれるセラー（日本除外済み）</div>
+        <div class="legend">
+          ⭐ <span>優先セラー</span>：Game / Games / Gaming / Handheld / Retro / Console / Vintage / Nintendo / Mario がユーザー名に含まれるセラー（日本除外済み）
+          &nbsp;／&nbsp; SNSアイコン: カラー = 確認済み &nbsp; — = 未取得
+        </div>
         <div id="progressLog"></div>
         <div id="resultsBody"></div>
       </div>
@@ -160,6 +226,11 @@
     const countryFlags = { 'US':'🇺🇸','GB':'🇬🇧','AU':'🇦🇺','DE':'🇩🇪','FR':'🇫🇷','CA':'🇨🇦','JP':'🇯🇵','CN':'🇨🇳','IT':'🇮🇹','ES':'🇪🇸','NL':'🇳🇱','HK':'🇭🇰' };
     const PRIORITY_KEYWORDS = ['game','games','gaming','handheld','retro','console','consoles','vintage','nintendo','mario'];
 
+    const MARKET_LABELS = {
+      'EBAY-US': '🇺🇸 US', 'EBAY-GB': '🇬🇧 UK', 'EBAY-AU': '🇦🇺 AU',
+      'EBAY-DE': '🇩🇪 DE', 'EBAY-FR': '🇫🇷 FR', 'EBAY-CA': '🇨🇦 CA'
+    };
+
     function getSellerUrl(username, market) {
       const domainMap = { 'EBAY-US':'https://www.ebay.com','EBAY-GB':'https://www.ebay.co.uk','EBAY-AU':'https://www.ebay.com.au','EBAY-DE':'https://www.ebay.de','EBAY-FR':'https://www.ebay.fr','EBAY-CA':'https://www.ebay.ca' };
       return (domainMap[market] || 'https://www.ebay.com') + '/usr/' + username;
@@ -174,6 +245,57 @@
       btn.addEventListener('click', () => btn.classList.toggle('active'));
     });
 
+    /**
+     * 1セルぶんのアイコンHTMLを返す
+     * val: null=未取得, false=なし, string=確認済みURL/値
+     */
+    function contactCell(val, iconCls, label, isLink) {
+      if (val === null) {
+        return `<td class="contact-col"><div class="contact-cell"><span class="contact-icon unknown ${iconCls}" title="${label}: 未取得">—</span></div></td>`;
+      } else if (val === false) {
+        return `<td class="contact-col"><div class="contact-cell"><span class="contact-icon not-found ${iconCls}" title="${label}: なし">—</span></div></td>`;
+      } else {
+        const tag = isLink ? `a href="${val}" target="_blank"` : 'span';
+        const close = isLink ? 'a' : 'span';
+        return `<td class="contact-col"><div class="contact-cell"><${tag} class="contact-icon found ${iconCls}" title="${label}: ${val}">${label}</${close}></div></td>`;
+      }
+    }
+
+    function buildSellerRow(s) {
+      const marketsArr = [...s.markets];
+      const kws = [...s.keywords].join(' / ');
+      const priority = isPrioritySeller(s.username);
+      const flag = countryFlags[s.shipFrom] || '🌐';
+
+      // Option B実装前：全て null（未取得）
+      // Option B実装後は s.contactInfo で置き換えるだけ
+      const ci = { web: null, ig: null, fb: null, email: null, wa: null, x: null };
+
+      const ratingCls = parseFloat(s.feedbackPercentage) >= 99 ? 'rating-high' : parseFloat(s.feedbackPercentage) >= 97 ? 'rating-mid' : 'rating-low';
+      const marketsHtml = marketsArr.map(m => `<span class="market-tag">${MARKET_LABELS[m] || m}</span>`).join('');
+
+      return `<tr class="${priority ? 'priority-row' : ''}" data-username="${s.username}">
+  <td class="left">
+    <div class="seller-name-wrap">
+      <a href="${getSellerUrl(s.username, marketsArr[0])}" target="_blank">${s.username}</a>
+      ${priority ? '<span class="priority-badge">⭐ 優先</span>' : ''}
+    </div>
+  </td>
+  <td>${flag} ${s.shipFrom}</td>
+  <td><div class="market-tags">${marketsHtml}</div></td>
+  <td>${s.feedbackScore.toLocaleString()}</td>
+  <td class="${ratingCls}">${s.feedbackPercentage}%</td>
+  <td>${s.itemCount}</td>
+  ${contactCell(ci.web,   'icon-web',   'HP',   true)}
+  ${contactCell(ci.email, 'icon-email', 'Mail', false)}
+  ${contactCell(ci.fb,    'icon-fb',    'FB',   true)}
+  ${contactCell(ci.ig,    'icon-ig',    'IG',   true)}
+  ${contactCell(ci.x,     'icon-x',     'X',    true)}
+  ${contactCell(ci.wa,    'icon-wa',    'WA',   false)}
+  <td><button class="msg-btn" onclick="generateMessage('${s.username}','${s.shipFrom}','${marketsArr.join(',')}',${s.feedbackScore},'${s.feedbackPercentage}','${kws.replace(/'/g,"\\'")}')">✉ MSG</button></td>
+</tr>`;
+    }
+
     async function startSearch() {
       const keywords = [
         document.getElementById('keyword1').value.trim(),
@@ -185,6 +307,7 @@
       const activeMarkets = [...document.querySelectorAll('.market-btn.active')].map(b => b.dataset.id);
       if (keywords.length === 0) { alert('キーワードを1つ以上入力してください'); return; }
       if (activeMarkets.length === 0) { alert('マーケットを1つ以上選択してください'); return; }
+
       const btn = document.getElementById('searchBtn');
       btn.disabled = true; btn.textContent = '⏳ SEARCHING...';
       const resultsCard = document.getElementById('resultsCard');
@@ -193,9 +316,11 @@
       resultsCard.style.display = 'block';
       resultsBody.innerHTML = '';
       progressLog.innerHTML = '<div class="status">検索中...</div>';
+
       const allSellers = {};
       let totalRequests = keywords.length * activeMarkets.length;
       let completed = 0;
+
       for (const keyword of keywords) {
         for (const market of activeMarkets) {
           try {
@@ -215,6 +340,7 @@
           completed++;
         }
       }
+
       progressLog.innerHTML = '';
       const sellers = Object.values(allSellers).sort((a, b) => {
         const ap = isPrioritySeller(a.username) ? 1 : 0;
@@ -222,19 +348,15 @@
         if (bp !== ap) return bp - ap;
         return b.feedbackScore - a.feedbackScore;
       });
+
       document.getElementById('resultCount').textContent = `${sellers.length} sellers found`;
+
       if (sellers.length === 0) {
         resultsBody.innerHTML = '<div class="status">条件に合うセラーが見つかりませんでした</div>';
       } else {
-        resultsBody.innerHTML = `<table><thead><tr><th>SELLER</th><th>SHIP FROM</th><th>MARKETS</th><th>FEEDBACK</th><th>RATING</th><th>ITEMS</th><th>ACTION</th></tr></thead><tbody>${sellers.map(s => {
-          const flag = countryFlags[s.shipFrom] || '🌐';
-          const marketsArr = [...s.markets];
-          const marketsStr = marketsArr.join(', ');
-          const kws = [...s.keywords].join(' / ');
-          const priority = isPrioritySeller(s.username);
-          return `<tr class="${priority ? 'priority-row' : ''}"><td><a href="${getSellerUrl(s.username, marketsArr[0])}" target="_blank">${s.username}</a>${priority ? '<span class="priority-badge">⭐ 優先</span>' : ''}</td><td>${flag} ${s.shipFrom}</td><td>${marketsStr}</td><td>${s.feedbackScore.toLocaleString()}</td><td>${s.feedbackPercentage}%</td><td>${s.itemCount}</td><td><button class="msg-btn" onclick="generateMessage('${s.username}','${s.shipFrom}','${marketsStr}',${s.feedbackScore},'${s.feedbackPercentage}','${kws}')">✉ MESSAGE</button></td></tr>`;
-        }).join('')}</tbody></table>`;
+        resultsBody.innerHTML = '<table class="seller-table"><thead><tr><th class="left">SELLER</th><th>SHIP FROM</th><th>MARKETS</th><th>FEEDBACK</th><th>RATING</th><th>ITEMS</th><th>HP</th><th>MAIL</th><th>FB</th><th>IG</th><th>X</th><th>WA</th><th>ACTION</th></tr></thead><tbody>' + sellers.map(buildSellerRow).join('') + '</tbody></table>';
       }
+
       btn.disabled = false; btn.textContent = '🔍 SEARCH SELLERS';
     }
 
@@ -261,7 +383,11 @@
           let html = '<table><thead><tr><th>REGION</th><th>TITLE / URL</th><th>PLATFORM</th><th>SNIPPET</th></tr></thead><tbody>';
           for (const region of regionOrder) {
             data.results.filter(r => r.region === region).forEach(item => {
-              let badge = item.isInstagram ? '<span class="platform-badge badge-ig">Instagram</span>' : item.isFacebook ? '<span class="platform-badge badge-fb">Facebook</span>' : item.isEbay ? '<span class="platform-badge badge-ebay">eBay</span>' : item.isEtsy ? '<span class="platform-badge badge-etsy">Etsy</span>' : '<span class="platform-badge badge-web">Web</span>';
+              let badge = item.isInstagram ? '<span class="platform-badge badge-ig-shop">Instagram</span>'
+                : item.isFacebook ? '<span class="platform-badge badge-fb-shop">Facebook</span>'
+                : item.isEbay ? '<span class="platform-badge badge-ebay">eBay</span>'
+                : item.isEtsy ? '<span class="platform-badge badge-etsy">Etsy</span>'
+                : '<span class="platform-badge badge-web-shop">Web</span>';
               html += `<tr><td><span class="region-badge">${item.region}</span></td><td><a href="${item.url}" target="_blank">${item.title}</a><div class="snippet-text">${item.url}</div></td><td>${badge}</td><td><div class="snippet-text">${item.snippet || ''}</div></td></tr>`;
             });
           }
