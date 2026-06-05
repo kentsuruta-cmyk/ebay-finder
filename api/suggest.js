@@ -59,10 +59,15 @@ Respond ONLY with a JSON array, no markdown, no other text:
     });
     const data = await response.json();
     if (!data.content || !data.content[0]) {
-      return res.status(500).json({ error: 'Invalid response from AI' });
+      return res.status(500).json({ error: 'Invalid response from AI', details: JSON.stringify(data) });
     }
-    const text = data.content[0].text.replace(/```json|```/g, '').trim();
-    const angles = JSON.parse(text);
+    const text = data.content[0].text;
+    // JSON配列を抽出（前後の説明文を除去）
+    const match = text.match(/\[[\s\S]*\]/);
+    if (!match) {
+      return res.status(500).json({ error: 'Could not parse JSON array', raw: text.slice(0, 300) });
+    }
+    const angles = JSON.parse(match[0]);
     return res.status(200).json({ angles });
   } catch (err) {
     return res.status(500).json({ error: err.message });
