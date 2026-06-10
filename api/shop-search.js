@@ -31,7 +31,7 @@ module.exports = async (req, res) => {
   const results = [];
   for (const { angle, country } of combos) {
     try {
-      const q = `${angle.query} -site:ebay.com -site:yelp.com -site:reddit.com -site:youtube.com -site:amazon.com`;
+      const q = `${angle.query} (site:etsy.com OR site:instagram.com) -site:ebay.com -site:yelp.com -site:reddit.com -site:youtube.com -site:amazon.com`;
       const r = await fetch('https://google.serper.dev/search', {
         method: 'POST',
         headers: {
