@@ -43,65 +43,34 @@
     .legend { font-size: 11px; color: #888; margin-bottom: 16px; }
     .legend span { color: #00ff88; }
 
-    /* ── Seller Table ── */
+    /* Seller Table */
     .seller-table { width: 100%; border-collapse: collapse; font-size: 12px; }
-    .seller-table th {
-      color: #555;
-      text-align: center;
-      padding: 8px 10px;
-      border-bottom: 1px solid #2a2a2a;
-      font-size: 10px;
-      letter-spacing: 1px;
-      white-space: nowrap;
-    }
+    .seller-table th { color: #555; text-align: center; padding: 8px 10px; border-bottom: 1px solid #2a2a2a; font-size: 10px; letter-spacing: 1px; white-space: nowrap; }
     .seller-table th.left { text-align: left; }
-    .seller-table td {
-      padding: 10px;
-      border-bottom: 1px solid #1a1a1a;
-      color: #ccc;
-      vertical-align: middle;
-      text-align: center;
-    }
+    .seller-table td { padding: 10px; border-bottom: 1px solid #1a1a1a; color: #ccc; vertical-align: middle; text-align: center; }
     .seller-table td.left { text-align: left; }
     .seller-table tr:hover td { background: #161616; }
     .seller-table tr.priority-row td:first-child { border-left: 2px solid #00ff88; }
-
     .seller-name-wrap { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
     .seller-name-wrap a { color: #00ff88; text-decoration: none; font-size: 12px; }
     .seller-name-wrap a:hover { text-decoration: underline; }
     .priority-badge { background: #00ff88; color: #000; font-size: 9px; padding: 1px 5px; border-radius: 2px; font-weight: bold; white-space: nowrap; }
-
-    /* Contact cell icons */
     .contact-cell { display: flex; justify-content: center; align-items: center; }
-    .contact-icon {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 28px; height: 22px;
-      border-radius: 3px;
-      font-size: 10px;
-      font-weight: bold;
-      text-decoration: none;
-      cursor: default;
-    }
+    .contact-icon { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 22px; border-radius: 3px; font-size: 10px; font-weight: bold; text-decoration: none; cursor: default; }
     .contact-icon.unknown { color: #333; font-size: 13px; }
-    .contact-icon.found   { cursor: pointer; }
+    .contact-icon.found { cursor: pointer; }
     .contact-icon.not-found { color: #2a2a2a; font-size: 13px; }
-
     .icon-web.found   { background: #1f3a2a; color: #00ff88; border: 1px solid #00ff88; }
     .icon-ig.found    { background: #3a1520; color: #e1306c; border: 1px solid #e1306c; }
     .icon-fb.found    { background: #101e3a; color: #1877f2; border: 1px solid #1877f2; }
     .icon-email.found { background: #2a2010; color: #f59e0b; border: 1px solid #f59e0b; }
     .icon-wa.found    { background: #0d2a1a; color: #25d366; border: 1px solid #25d366; }
-    .icon-x.found     { background: #1a1a1a; color: #fff;    border: 1px solid #555; }
-
+    .icon-x.found     { background: #1a1a1a; color: #fff; border: 1px solid #555; }
     .market-tags { display: flex; gap: 4px; flex-wrap: wrap; justify-content: center; }
     .market-tag { font-size: 9px; padding: 1px 5px; border-radius: 2px; background: #1a1a1a; border: 1px solid #2a2a2a; color: #888; white-space: nowrap; }
-
     .rating-high { color: #00ff88; }
     .rating-mid  { color: #f59e0b; }
     .rating-low  { color: #888; }
-
     .msg-btn { background: #1a1a1a; border: 1px solid #00ff88; color: #00ff88; padding: 5px 10px; border-radius: 3px; cursor: pointer; font-size: 10px; font-family: 'Courier New', monospace; white-space: nowrap; }
     .msg-btn:hover { background: #00ff88; color: #000; }
 
@@ -138,7 +107,7 @@
     .badge-etsy { background: #2a1800; color: #f56400; border: 1px solid #f56400; }
     .badge-web-shop { background: #1a1a1a; color: #666; border: 1px solid #333; }
     .region-badge { font-size: 10px; padding: 2px 8px; border-radius: 3px; background: #1a1a1a; border: 1px solid #333; color: #888; white-space: nowrap; }
-    .angle-badge { font-size: 10px; padding: 2px 8px; border-radius: 3px; background: #0f1f2a; border: 1px solid #1a4a6a; color: #00aaff; white-space: nowrap; margin-top: 4px; display: inline-block; }
+    .angle-badge { font-size: 10px; padding: 2px 8px; border-radius: 3px; background: #0f1f2a; border: 1px solid #1a4a6a; color: #00aaff; white-space: nowrap; display: inline-block; }
     .snippet-text { font-size: 11px; color: #555; margin-top: 4px; line-height: 1.4; }
     .url-text { font-size: 10px; color: #444; margin-top: 2px; }
 
@@ -193,7 +162,6 @@
         </div>
         <button class="search-btn" id="searchBtn" onclick="startSearch()">🔍 SEARCH SELLERS</button>
       </div>
-
       <div class="card" id="resultsCard" style="display:none;">
         <div class="results-header"><h2>▸ RESULTS</h2><span id="resultCount"></span></div>
         <div class="legend">
@@ -210,8 +178,6 @@
     <div class="container">
       <div class="card">
         <h2>▸ SHOP SEARCH CONFIG</h2>
-
-        <!-- キーワード入力 -->
         <div class="form-group" style="margin-bottom:20px;">
           <label>SEARCH KEYWORD</label>
           <div style="display:flex; gap:8px;">
@@ -219,25 +185,17 @@
             <button id="suggestBtn" onclick="suggestAngles()" style="background:#1a1a1a; border:1px solid #00ff88; color:#00ff88; padding:10px 16px; border-radius:4px; cursor:pointer; font-family:'Courier New',monospace; font-size:12px; white-space:nowrap;">🔮 切り口を提案</button>
           </div>
         </div>
-
-        <!-- 切り口選択（提案後に表示） -->
         <div id="anglesSection" style="display:none; margin-bottom:20px;">
           <label style="font-size:11px; color:#888; letter-spacing:1px; display:block; margin-bottom:8px;">検索の切り口 <span style="color:#555;">（選択した切り口 × 選択した国で検索）</span></label>
           <div id="anglesList" style="display:grid; grid-template-columns:1fr 1fr; gap:8px;"></div>
         </div>
-
-        <!-- 国選択 -->
         <div style="margin-bottom:20px;">
           <label style="font-size:11px; color:#888; letter-spacing:1px; display:block; margin-bottom:10px;">対象の国</label>
           <div id="countryGroups"></div>
         </div>
-
-        <!-- コンボ数表示 -->
         <div id="comboCount" style="font-size:11px; color:#555; margin-bottom:12px;"></div>
-
         <button class="search-btn" id="shopSearchBtn" onclick="startShopSearch()" disabled>🔍 SEARCH SHOPS</button>
       </div>
-
       <div class="card" id="shopResultsCard" style="display:none;">
         <div class="results-header"><h2>▸ RESULTS</h2><span id="shopResultCount"></span></div>
         <div id="shopProgressLog"></div>
@@ -267,11 +225,7 @@
 
     const countryFlags = { 'US':'🇺🇸','GB':'🇬🇧','AU':'🇦🇺','DE':'🇩🇪','FR':'🇫🇷','CA':'🇨🇦','JP':'🇯🇵','CN':'🇨🇳','IT':'🇮🇹','ES':'🇪🇸','NL':'🇳🇱','HK':'🇭🇰' };
     const PRIORITY_KEYWORDS = ['game','games','gaming','handheld','retro','console','consoles','vintage','nintendo','mario'];
-
-    const MARKET_LABELS = {
-      'EBAY-US': '🇺🇸 US', 'EBAY-GB': '🇬🇧 UK', 'EBAY-AU': '🇦🇺 AU',
-      'EBAY-DE': '🇩🇪 DE', 'EBAY-FR': '🇫🇷 FR', 'EBAY-CA': '🇨🇦 CA'
-    };
+    const MARKET_LABELS = { 'EBAY-US':'🇺🇸 US','EBAY-GB':'🇬🇧 UK','EBAY-AU':'🇦🇺 AU','EBAY-DE':'🇩🇪 DE','EBAY-FR':'🇫🇷 FR','EBAY-CA':'🇨🇦 CA' };
 
     function getSellerUrl(username, market) {
       const domainMap = { 'EBAY-US':'https://www.ebay.com','EBAY-GB':'https://www.ebay.co.uk','EBAY-AU':'https://www.ebay.com.au','EBAY-DE':'https://www.ebay.de','EBAY-FR':'https://www.ebay.fr','EBAY-CA':'https://www.ebay.ca' };
@@ -287,10 +241,6 @@
       btn.addEventListener('click', () => btn.classList.toggle('active'));
     });
 
-    /**
-     * 1セルぶんのアイコンHTMLを返す
-     * val: null=未取得, false=なし, string=確認済みURL/値
-     */
     function contactCell(val, iconCls, label, isLink) {
       if (val === null) {
         return `<td class="contact-col"><div class="contact-cell"><span class="contact-icon unknown ${iconCls}" title="${label}: 未取得">—</span></div></td>`;
@@ -308,32 +258,22 @@
       const kws = [...s.keywords].join(' / ');
       const priority = isPrioritySeller(s.username);
       const flag = countryFlags[s.shipFrom] || '🌐';
-
-      // Option B実装前：全て null（未取得）
-      // Option B実装後は s.contactInfo で置き換えるだけ
       const ci = { web: null, ig: null, fb: null, email: null, wa: null, x: null };
-
       const ratingCls = parseFloat(s.feedbackPercentage) >= 99 ? 'rating-high' : parseFloat(s.feedbackPercentage) >= 97 ? 'rating-mid' : 'rating-low';
       const marketsHtml = marketsArr.map(m => `<span class="market-tag">${MARKET_LABELS[m] || m}</span>`).join('');
-
       return `<tr class="${priority ? 'priority-row' : ''}" data-username="${s.username}">
-  <td class="left">
-    <div class="seller-name-wrap">
-      <a href="${getSellerUrl(s.username, marketsArr[0])}" target="_blank">${s.username}</a>
-      ${priority ? '<span class="priority-badge">⭐ 優先</span>' : ''}
-    </div>
-  </td>
+  <td class="left"><div class="seller-name-wrap"><a href="${getSellerUrl(s.username, marketsArr[0])}" target="_blank">${s.username}</a>${priority ? '<span class="priority-badge">⭐ 優先</span>' : ''}</div></td>
   <td>${flag} ${s.shipFrom}</td>
   <td><div class="market-tags">${marketsHtml}</div></td>
   <td>${s.feedbackScore.toLocaleString()}</td>
   <td class="${ratingCls}">${s.feedbackPercentage}%</td>
   <td>${s.itemCount}</td>
-  ${contactCell(ci.web,   'icon-web',   'HP',   true)}
-  ${contactCell(ci.email, 'icon-email', 'Mail', false)}
-  ${contactCell(ci.fb,    'icon-fb',    'FB',   true)}
-  ${contactCell(ci.ig,    'icon-ig',    'IG',   true)}
-  ${contactCell(ci.x,     'icon-x',     'X',    true)}
-  ${contactCell(ci.wa,    'icon-wa',    'WA',   false)}
+  ${contactCell(ci.web,'icon-web','HP',true)}
+  ${contactCell(ci.email,'icon-email','Mail',false)}
+  ${contactCell(ci.fb,'icon-fb','FB',true)}
+  ${contactCell(ci.ig,'icon-ig','IG',true)}
+  ${contactCell(ci.x,'icon-x','X',true)}
+  ${contactCell(ci.wa,'icon-wa','WA',false)}
   <td><button class="msg-btn" onclick="generateMessage('${s.username}','${s.shipFrom}','${marketsArr.join(',')}',${s.feedbackScore},'${s.feedbackPercentage}','${kws.replace(/'/g,"\\'")}')">✉ MSG</button></td>
 </tr>`;
     }
@@ -392,17 +332,15 @@
       });
 
       document.getElementById('resultCount').textContent = `${sellers.length} sellers found`;
-
       if (sellers.length === 0) {
         resultsBody.innerHTML = '<div class="status">条件に合うセラーが見つかりませんでした</div>';
       } else {
         resultsBody.innerHTML = '<table class="seller-table"><thead><tr><th class="left">SELLER</th><th>SHIP FROM</th><th>MARKETS</th><th>FEEDBACK</th><th>RATING</th><th>ITEMS</th><th>HP</th><th>MAIL</th><th>FB</th><th>IG</th><th>X</th><th>WA</th><th>ACTION</th></tr></thead><tbody>' + sellers.map(buildSellerRow).join('') + '</tbody></table>';
       }
-
       btn.disabled = false; btn.textContent = '🔍 SEARCH SELLERS';
     }
 
-    // ── 国データ ──
+    // 国データ
     const COUNTRY_DATA = [
       { region: 'North America', countries: [
         { label: '🇺🇸 USA',     gl: 'us' },
@@ -422,46 +360,46 @@
         { label: '🇵🇱 Poland',      gl: 'pl' },
       ]},
       { region: 'Oceania', countries: [
-        { label: '🇦🇺 Australia',    gl: 'au' },
-        { label: '🇳🇿 New Zealand',  gl: 'nz' },
+        { label: '🇦🇺 Australia',   gl: 'au' },
+        { label: '🇳🇿 New Zealand', gl: 'nz' },
       ]},
       { region: 'Middle East', countries: [
-        { label: '🇦🇪 UAE',          gl: 'ae' },
-        { label: '🇹🇷 Turkey',       gl: 'tr' },
+        { label: '🇦🇪 UAE',    gl: 'ae' },
+        { label: '🇹🇷 Turkey', gl: 'tr' },
       ]},
       { region: 'Asia', countries: [
-        { label: '🇸🇬 Singapore',    gl: 'sg' },
-        { label: '🇭🇰 Hong Kong',    gl: 'hk' },
-        { label: '🇹🇼 Taiwan',       gl: 'tw' },
-        { label: '🇰🇷 South Korea',  gl: 'kr' },
-        { label: '🇵🇭 Philippines',  gl: 'ph' },
-        { label: '🇹🇭 Thailand',     gl: 'th' },
-        { label: '🇮🇩 Indonesia',    gl: 'id' },
-        { label: '🇲🇾 Malaysia',     gl: 'my' },
+        { label: '🇸🇬 Singapore',   gl: 'sg' },
+        { label: '🇭🇰 Hong Kong',   gl: 'hk' },
+        { label: '🇹🇼 Taiwan',      gl: 'tw' },
+        { label: '🇰🇷 South Korea', gl: 'kr' },
+        { label: '🇵🇭 Philippines', gl: 'ph' },
+        { label: '🇹🇭 Thailand',    gl: 'th' },
+        { label: '🇮🇩 Indonesia',   gl: 'id' },
+        { label: '🇲🇾 Malaysia',    gl: 'my' },
       ]},
     ];
 
     let selectedAngles = [];
 
-function initCountryUI() {
-  const container = document.getElementById('countryGroups');
-  container.innerHTML = COUNTRY_DATA.map(group => `
-    <div class="country-group">
-      <div class="country-group-header">
-        <span class="country-group-label">${group.region.toUpperCase()}</span>
-        <button class="select-all-btn" onclick="toggleRegion('${group.region}')">全選択</button>
-      </div>
-      <div class="country-grid">
-        ${group.countries.map(c => `
-          <div class="country-chip active" data-gl="${c.gl}" data-region="${group.region}" data-label="${c.label}" onclick="toggleCountry(this)">
-            ${c.label}
+    function initCountryUI() {
+      const container = document.getElementById('countryGroups');
+      container.innerHTML = COUNTRY_DATA.map(group => `
+        <div class="country-group">
+          <div class="country-group-header">
+            <span class="country-group-label">${group.region.toUpperCase()}</span>
+            <button class="select-all-btn" onclick="toggleRegion('${group.region}')">全選択</button>
           </div>
-        `).join('')}
-      </div>
-    </div>
-  `).join('');
-  updateComboCount();
-}
+          <div class="country-grid">
+            ${group.countries.map(c => `
+              <div class="country-chip active" data-gl="${c.gl}" data-region="${group.region}" data-label="${c.label}" onclick="toggleCountry(this)">
+                ${c.label}
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `).join('');
+      updateComboCount();
+    }
 
     function toggleCountry(el) {
       el.classList.toggle('active');
@@ -479,9 +417,7 @@ function initCountryUI() {
 
     function getSelectedCountries() {
       return [...document.querySelectorAll('.country-chip.active')].map(c => ({
-        label: c.dataset.label,
-        gl: c.dataset.gl,
-        region: c.dataset.region,
+        label: c.dataset.label, gl: c.dataset.gl, region: c.dataset.region,
       }));
     }
 
@@ -490,10 +426,7 @@ function initCountryUI() {
       const angles = selectedAngles.length;
       const combos = Math.min(angles * countries.length, 12);
       const el = document.getElementById('comboCount');
-      if (angles === 0 || countries.length === 0) {
-        el.textContent = '';
-        return;
-      }
+      if (angles === 0 || countries.length === 0) { el.textContent = ''; return; }
       const total = angles * countries.length;
       const capped = total > 12 ? `（12件にカット）` : '';
       el.innerHTML = `選択中: 切り口 ${angles} × 国 ${countries.length} = <span style="color:#00ff88;">${combos} コンボ</span> ${capped}`;
@@ -518,7 +451,6 @@ function initCountryUI() {
         });
         const data = await res.json();
         if (!data.angles) throw new Error(data.error || '不明なエラー');
-
         selectedAngles = data.angles;
         const section = document.getElementById('anglesSection');
         const list = document.getElementById('anglesList');
@@ -540,8 +472,6 @@ function initCountryUI() {
 
     function toggleAngle(el, index) {
       el.classList.toggle('active');
-      const activeIndices = [...document.querySelectorAll('.angle-card.active')].map(c => parseInt(c.dataset.index));
-      // selectedAnglesを選択中のもののみに絞る（元データは保持）
       updateComboCount();
       updateSearchBtn();
     }
@@ -563,7 +493,7 @@ function initCountryUI() {
       const body = document.getElementById('shopResultsBody');
       card.style.display = 'block';
       body.innerHTML = '';
-      progressLog.innerHTML = '<div class="status">検索中... (Google API消費中)</div>';
+      progressLog.innerHTML = '<div class="status">🔍 検索中... AI分析中... しばらくお待ちください</div>';
 
       try {
         const res = await fetch('/api/shop-search', {
@@ -577,24 +507,68 @@ function initCountryUI() {
         if (!data.results || data.results.length === 0) {
           body.innerHTML = '<div class="status">結果が見つかりませんでした</div>';
         } else {
-          document.getElementById('shopResultCount').textContent = `${data.results.length} results found (${data.combos} combos)`;
-          let html = '<table class="shop-table"><thead><tr><th>REGION</th><th>ANGLE</th><th>TITLE / URL</th><th>TYPE</th><th>SNIPPET</th></tr></thead><tbody>';
-          data.results.forEach(item => {
-            const badge = item.isInstagram ? '<span class="platform-badge badge-ig-shop">IG</span>'
-              : item.isFacebook ? '<span class="platform-badge badge-fb-shop">FB</span>'
-              : item.isEbay ? '<span class="platform-badge badge-ebay">eBay</span>'
-              : item.isEtsy ? '<span class="platform-badge badge-etsy">Etsy</span>'
-              : '<span class="platform-badge badge-web-shop">Web</span>';
-            html += `<tr>
-              <td><span class="region-badge">${item.country}</span></td>
-              <td><span class="angle-badge">${item.angle}</span></td>
-              <td><a href="${item.url}" target="_blank">${item.title}</a><div class="url-text">${item.url}</div></td>
-              <td>${badge}</td>
-              <td><div class="snippet-text">${item.snippet || ''}</div></td>
+          document.getElementById('shopResultCount').textContent = `${data.results.length} sellers found (${data.combos} combos)`;
+
+          let html = '';
+
+          // AIサマリー
+          if (data.summary) {
+            html += `<div style="background:#0f1f10; border:1px solid #1a4a1a; border-radius:6px; padding:16px; margin-bottom:20px; font-size:12px; color:#aaa; line-height:1.7;">
+              <span style="color:#00ff88; font-size:11px; letter-spacing:1px;">▸ AI SUMMARY</span><br><br>${data.summary}
+            </div>`;
+          }
+
+          // CSVダウンロードボタン
+          html += `<div style="text-align:right; margin-bottom:12px;">
+            <button onclick="downloadCSV()" style="background:#1a1a1a; border:1px solid #00ff88; color:#00ff88; padding:6px 14px; border-radius:4px; cursor:pointer; font-family:'Courier New',monospace; font-size:11px;">📥 CSV ダウンロード</button>
+          </div>`;
+
+          // テーブル
+          html += `<div style="overflow-x:auto;"><table class="shop-table"><thead><tr>
+            <th style="min-width:160px;">会社名</th>
+            <th>国</th>
+            <th>カテゴリ</th>
+            <th>関連度</th>
+            <th>直取</th>
+            <th>HP</th>
+            <th>IG</th>
+            <th>FB</th>
+            <th>X</th>
+            <th>Mail</th>
+            <th>WA</th>
+            <th>eBay</th>
+          </tr></thead><tbody>`;
+
+          data.results.forEach(s => {
+            const stars = '★'.repeat(s.relevance_score || 0) + '☆'.repeat(5 - (s.relevance_score || 0));
+            const scoreColor = (s.relevance_score || 0) >= 4 ? '#00ff88' : (s.relevance_score || 0) >= 3 ? '#f59e0b' : '#888';
+            const directColor = s.direct_score === 'A' ? '#00ff88' : s.direct_score === 'B' ? '#f59e0b' : '#888';
+            const lnk = (url, label) => url ? `<a href="${url}" target="_blank" style="color:#00ff88; font-size:11px; font-weight:bold;">${label}</a>` : '<span style="color:#333;">—</span>';
+
+            html += `<tr title="${(s.reason || '').replace(/"/g, '&quot;')}">
+              <td>
+                <div style="font-size:12px; color:#fff; font-weight:bold;">${s.company_name || ''}</div>
+                <div style="font-size:10px; color:#555; margin-top:3px; line-height:1.5;">${s.products || ''}</div>
+                ${s.price_range ? `<div style="font-size:10px; color:#888; margin-top:2px;">${s.price_range}</div>` : ''}
+                <div style="margin-top:4px;"><a href="${s.source_url || '#'}" target="_blank" style="font-size:9px; color:#444;">🔗 情報元</a></div>
+              </td>
+              <td style="white-space:nowrap; font-size:11px;">${s.country || ''}</td>
+              <td><span class="angle-badge">${s.category || ''}</span></td>
+              <td style="color:${scoreColor}; white-space:nowrap; font-size:11px;">${stars}</td>
+              <td style="color:${directColor}; font-weight:bold; font-size:14px;">${s.direct_score || ''}</td>
+              <td>${lnk(s.website, 'HP')}</td>
+              <td>${lnk(s.instagram, 'IG')}</td>
+              <td>${lnk(s.facebook, 'FB')}</td>
+              <td>${lnk(s.twitter, 'X')}</td>
+              <td>${s.email ? `<span style="color:#f59e0b; font-size:11px;">${s.email}</span>` : '<span style="color:#333;">—</span>'}</td>
+              <td>${s.whatsapp ? `<span style="color:#25d366; font-size:11px;">${s.whatsapp}</span>` : '<span style="color:#333;">—</span>'}</td>
+              <td>${lnk(s.ebay, 'eBay')}</td>
             </tr>`;
           });
-          html += '</tbody></table>';
+
+          html += '</tbody></table></div>';
           body.innerHTML = html;
+          window._shopResults = data.results;
         }
       } catch (e) {
         body.innerHTML = `<div class="status" style="color:#ff2d6b;">エラー: ${e.message}</div>`;
@@ -603,10 +577,29 @@ function initCountryUI() {
       updateSearchBtn();
     }
 
+    function downloadCSV() {
+      const results = window._shopResults || [];
+      if (!results.length) return;
+      const headers = ['会社名','国','カテゴリ','情報元','ウェブサイト','Instagram','Facebook','Twitter/X','メール','WhatsApp','eBayストア','価格帯','取扱商品','直取スコア','選定理由','関連度スコア'];
+      const rows = results.map(s => [
+        s.company_name, s.country, s.category, s.source_url,
+        s.website, s.instagram, s.facebook, s.twitter,
+        s.email, s.whatsapp, s.ebay, s.price_range, s.products,
+        s.direct_score, s.reason, s.relevance_score
+      ].map(v => `"${(v || '').toString().replace(/"/g, '""')}"`));
+      const csv = [headers.map(h => `"${h}"`).join(','), ...rows.map(r => r.join(','))].join('\n');
+      const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `sellers_${new Date().toISOString().slice(0,10)}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
     // 初期化
     initCountryUI();
 
-    // SNSアイコンを更新する関数
     function updateContactIcons(username, contactInfo) {
       const row = document.querySelector(`tr[data-username="${username}"]`);
       if (!row) return;
@@ -646,7 +639,6 @@ function initCountryUI() {
         const data = await response.json();
         if (data.message) {
           document.getElementById('msgContent').innerHTML = `<textarea id="msgText">${data.message}</textarea>`;
-          // SNSアイコンを更新
           if (data.contactInfo) updateContactIcons(username, data.contactInfo);
         } else {
           document.getElementById('msgContent').innerHTML = `<div class="generating" style="color:#ff2d6b;">エラー: ${data.error || '不明なエラー'}</div>`;
