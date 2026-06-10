@@ -427,8 +427,6 @@
       ]},
       { region: 'Middle East', countries: [
         { label: '🇦🇪 UAE',          gl: 'ae' },
-        { label: '🇸🇦 Saudi Arabia', gl: 'sa' },
-        { label: '🇮🇱 Israel',       gl: 'il' },
         { label: '🇹🇷 Turkey',       gl: 'tr' },
       ]},
       { region: 'Asia', countries: [
@@ -445,25 +443,25 @@
 
     let selectedAngles = [];
 
-    function initCountryUI() {
-      const container = document.getElementById('countryGroups');
-      container.innerHTML = COUNTRY_DATA.map(group => `
-        <div class="country-group">
-          <div class="country-group-header">
-            <span class="country-group-label">${group.region.toUpperCase()}</span>
-            <button class="select-all-btn" onclick="toggleRegion('${group.region}')">全選択</button>
+function initCountryUI() {
+  const container = document.getElementById('countryGroups');
+  container.innerHTML = COUNTRY_DATA.map(group => `
+    <div class="country-group">
+      <div class="country-group-header">
+        <span class="country-group-label">${group.region.toUpperCase()}</span>
+        <button class="select-all-btn" onclick="toggleRegion('${group.region}')">全選択</button>
+      </div>
+      <div class="country-grid">
+        ${group.countries.map(c => `
+          <div class="country-chip active" data-gl="${c.gl}" data-region="${group.region}" data-label="${c.label}" onclick="toggleCountry(this)">
+            ${c.label}
           </div>
-          <div class="country-grid">
-            ${group.countries.map(c => `
-              <div class="country-chip" data-gl="${c.gl}" data-region="${group.region}" data-label="${c.label}" onclick="toggleCountry(this)">
-                ${c.label}
-              </div>
-            `).join('')}
-          </div>
-        </div>
-      `).join('');
-      updateComboCount();
-    }
+        `).join('')}
+      </div>
+    </div>
+  `).join('');
+  updateComboCount();
+}
 
     function toggleCountry(el) {
       el.classList.toggle('active');
