@@ -1,5 +1,9 @@
 // マージ後の上位セラーについて「本当の出品数」を取りに行く。
 // 旧UIの ITEMS 列は取得した100件のうち何件かを数えていただけで、店の規模を表していなかった。
+//
+// 注意: category_ids だけ（q なし）+ sellers フィルタの件数は eBay 側が
+// 信用できない値を返す（実際に4万点規模のセラーが 56 や 0 になる）ため使わない。
+// q ありのキーワード一致件数は正しい値が返るので、そちらを採用する。
 const { countSellerItems } = require('../lib/ebay');
 
 async function mapLimit(list, limit, fn) {
@@ -24,23 +28,35 @@ module.exports = async (req, res) => {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { sellers = [], keyword = '', categoryIds = '', conditionIds = '' } = req.body || {};
+  const { sellers = [], keywords = [], categoryIds = '', conditionIds = '' } = req.body || {};
   if (!sellers.length) return res.status(400).json({ error: 'sellers が空です' });
+  if (!keywords.length) return res.status(400).json({ error: 'keywords が空です' });
 
   const conds = conditionIds ? String(conditionIds).split(',').filter(Boolean) : undefined;
+  const kws = keywords.slice(0, 3);
 
   try {
-    const results = await mapLimit(sellers.slice(0, 60), 10, async s => {
-      // カテゴリ全体での出品数（店の在庫規模）と、キーワード一致数の両方を取る
-      const [categoryCount, keywordCount] = await Promise.all([
-        categoryIds
-          ? countSellerItems({ globalId: s.market, username: s.username, categoryIds, conditionIds: conds })
-          : Promise.resolve(null),
-        keyword
-          ? countSellerItems({ globalId: s.market, keyword, username: s.username, categoryIds: categoryIds || undefined, conditionIds: conds })
-          : Promise.resolve(null),
-      ]);
-      return { username: s.username, categoryCount, keywordCount };
+    const results = await mapLimit(sellers.slice(0, 60), 8, async s => {
+      const counts = await Promise.all(
+        kws.map(kw =>
+          countSellerItems({
+            globalId: s.market,
+            keyword: kw,
+            username: s.username,
+            categoryIds: categoryIds || undefined,
+            conditionIds: conds,
+          })
+        )
+      );
+      const byKeyword = {};
+      kws.forEach((kw, i) => { if (counts[i] != null) byKeyword[kw] = counts[i]; });
+      const valid = counts.filter(c => c != null);
+      // 複数キーワードにまたがる出品を二重に数えないよう、合計ではなく最大値を採る
+      return {
+        username: s.username,
+        listingCount: valid.length ? Math.max(...valid) : null,
+        byKeyword,
+      };
     });
 
     return res.status(200).json({ stats: results.filter(Boolean) });

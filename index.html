@@ -219,7 +219,7 @@
         <div class="results-header"><h2>▸ RESULTS</h2><span id="resultCount"></span></div>
         <div class="legend">
           <span>SCORE</span>：出品数・評価率・規模適合・出品マーケット数・屋号シグナルの合成値（狙うセラー規模の設定で変わります）
-          &nbsp;／&nbsp; <span>LISTINGS</span>：そのセラーの実際の出品数（eBayに問い合わせた実数）
+          &nbsp;／&nbsp; <span>LISTINGS</span>：そのセラーが検索キーワードで出品している実件数（eBayに問い合わせた実数。複数キーワード時は最大値）
           &nbsp;／&nbsp; <span>HITS</span>：今回走査した範囲での該当件数
           &nbsp;／&nbsp; SNSアイコン: カラー = 確認済み &nbsp; — = 未取得（日本発送のセラーは除外済み）
         </div>
@@ -343,6 +343,7 @@
         `評価率 ${pct(p.rating)}`,
         `越境 ${pct(p.reach)}`,
         `屋号 ${pct(p.name)}`,
+        s.byKeyword ? '\n出品数: ' + Object.entries(s.byKeyword).map(([k, v]) => `${k}=${v}`).join(' / ') : '',
         s.sampleTitles && s.sampleTitles.length ? '\n出品例:\n・' + s.sampleTitles.join('\n・') : '',
       ].filter(Boolean).join(' / ');
     }
@@ -522,13 +523,13 @@
           const res = await fetch('/api/seller-stats', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ sellers: top, keyword: keywords[0], categoryIds, conditionIds }),
+            body: JSON.stringify({ sellers: top, keywords, categoryIds, conditionIds }),
           });
           const data = await res.json();
           const byName = new Map((data.stats || []).map(x => [x.username, x]));
           _sellers.forEach(s => {
             const st = byName.get(s.username);
-            if (st) s.listingCount = st.categoryCount != null ? st.categoryCount : st.keywordCount;
+            if (st) { s.listingCount = st.listingCount; s.byKeyword = st.byKeyword; }
           });
           renderSellers();
         } catch (e) {
