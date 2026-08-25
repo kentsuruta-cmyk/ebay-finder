@@ -1,87 +1,99 @@
-const fetch = require('node-fetch');
+// eBayセラー検索。
+// 旧実装との違い:
+//  - 1ページ(最大200件)しか見ていなかったのをページング化（母数が10〜50倍）
+//  - カテゴリ／コンディションで絞り込めるようにした
+//  - eBay側のエラーを握りつぶさず返す（旧実装は 0件 と区別がつかなかった）
+//  - セラーごとに出品タイトルのサンプルを返し、何を扱う店か判断できるようにした
+const { searchItems } = require('../lib/ebay');
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-
   if (req.method === 'OPTIONS') return res.status(200).end();
 
-  const { keyword, globalId, itemsPerPage = 50, minFeedback = 0 } = req.query;
+  const {
+    keyword,
+    globalId,
+    maxItems = 600,
+    minFeedback = 0,
+    categoryIds = '',
+    conditionIds = '',
+    excludeCountries = 'JP',
+  } = req.query;
 
   if (!keyword || !globalId) {
-    return res.status(400).json({ error: 'Missing required parameters: keyword, globalId' });
+    return res.status(400).json({ error: 'keyword と globalId は必須です' });
   }
 
-  const clientId = process.env.EBAY_CLIENT_ID;
-  const clientSecret = process.env.EBAY_CLIENT_SECRET;
-
-  if (!clientId || !clientSecret) {
-    return res.status(500).json({ error: 'Missing API credentials' });
-  }
+  const excluded = String(excludeCountries).split(',').map(s => s.trim()).filter(Boolean);
+  const minFb = parseInt(minFeedback, 10) || 0;
 
   try {
-    const credentials = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
-    const tokenRes = await fetch('https://api.ebay.com/identity/v1/oauth2/token', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Basic ${credentials}`,
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: 'grant_type=client_credentials&scope=https%3A%2F%2Fapi.ebay.com%2Foauth%2Fapi_scope'
+    const { items, total, categoryFallback } = await searchItems({
+      globalId,
+      keyword,
+      maxItems: Math.min(parseInt(maxItems, 10) || 600, 2000),
+      categoryIds: categoryIds || undefined,
+      conditionIds: conditionIds ? conditionIds.split(',').filter(Boolean) : undefined,
     });
-
-    const tokenData = await tokenRes.json();
-    if (!tokenData.access_token) {
-      return res.status(500).json({ error: 'Failed to get access token', details: tokenData });
-    }
-
-    const accessToken = tokenData.access_token;
-    const marketplaceId = globalId.replace('EBAY-', 'EBAY_');
-    const searchUrl = `https://api.ebay.com/buy/browse/v1/item_summary/search?q=${encodeURIComponent(keyword)}&limit=${itemsPerPage}&filter=buyingOptions:{FIXED_PRICE}`;
-
-    const searchRes = await fetch(searchUrl, {
-      headers: {
-        'Authorization': `Bearer ${accessToken}`,
-        'X-EBAY-C-MARKETPLACE-ID': marketplaceId,
-        'Content-Type': 'application/json',
-      }
-    });
-
-    const searchData = await searchRes.json();
-
-    if (!searchData.itemSummaries) {
-      return res.status(200).json({ sellers: [] });
-    }
 
     const sellerMap = {};
-    for (const item of searchData.itemSummaries) {
-      const seller = item.seller;
-      if (!seller) continue;
-      const name = seller.username;
-      const feedback = seller.feedbackScore || 0;
+    let excludedCount = 0;
 
-      if (feedback < parseInt(minFeedback)) continue;
+    for (const item of items) {
+      const seller = item.seller;
+      if (!seller || !seller.username) continue;
+
+      const feedback = seller.feedbackScore || 0;
+      if (feedback < minFb) continue;
 
       const shipFrom = item.itemLocation ? item.itemLocation.country : null;
-      if (shipFrom === 'JP') continue;
+      if (shipFrom && excluded.includes(shipFrom)) { excludedCount++; continue; }
 
+      const name = seller.username;
       if (!sellerMap[name]) {
         sellerMap[name] = {
           username: name,
           feedbackScore: feedback,
           feedbackPercentage: seller.feedbackPercentage || 'N/A',
-          itemCount: 0,
+          hits: 0,                 // この検索結果プール内で何点ヒットしたか（出品総数ではない）
           shipFrom: shipFrom || '?',
+          sampleTitles: [],
+          priceSum: 0,
+          priceCount: 0,
+          currency: '',
         };
       }
-      sellerMap[name].itemCount++;
+      const s = sellerMap[name];
+      s.hits++;
+      if (s.sampleTitles.length < 4 && item.title) s.sampleTitles.push(item.title.slice(0, 90));
+
+      const p = item.price && parseFloat(item.price.value);
+      if (p && !Number.isNaN(p)) {
+        s.priceSum += p;
+        s.priceCount++;
+        s.currency = item.price.currency || s.currency;
+      }
     }
 
-    const sellers = Object.values(sellerMap).sort((a, b) => b.feedbackScore - a.feedbackScore);
-    return res.status(200).json({ sellers, total: sellers.length });
+    const sellers = Object.values(sellerMap).map(s => ({
+      ...s,
+      avgPrice: s.priceCount ? Math.round((s.priceSum / s.priceCount) * 100) / 100 : null,
+      priceSum: undefined,
+      priceCount: undefined,
+    }));
 
+    return res.status(200).json({
+      sellers,
+      total: sellers.length,
+      scanned: items.length,          // 実際に読んだ出品数
+      available: total,               // eBay側の総ヒット数
+      excludedCount,
+      categoryFallback: !!categoryFallback,   // カテゴリIDが通らずカテゴリ無しで再検索した
+    });
   } catch (err) {
-    return res.status(500).json({ error: err.message });
+    // 旧実装はここで {sellers: []} を返していたので、画面上は「0件」と区別がつかなかった
+    return res.status(502).json({ error: err.message, sellers: [] });
   }
 };

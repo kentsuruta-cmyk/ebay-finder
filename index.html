@@ -21,9 +21,15 @@
     .card h2 { color: #00ff88; font-size: 13px; letter-spacing: 3px; margin-bottom: 20px; }
     .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
     .form-group label { font-size: 11px; color: #888; letter-spacing: 1px; }
-    .form-group input { background: #0a0a0a; border: 1px solid #333; color: #fff; padding: 10px; border-radius: 4px; font-family: 'Courier New', monospace; font-size: 13px; }
-    .form-group input:focus { outline: none; border-color: #00ff88; }
-    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .form-group input, .form-group select { background: #0a0a0a; border: 1px solid #333; color: #fff; padding: 10px; border-radius: 4px; font-family: 'Courier New', monospace; font-size: 13px; }
+    .form-group input:focus, .form-group select:focus { outline: none; border-color: #00ff88; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+    .hint { font-size: 10px; color: #555; margin-top: 2px; line-height: 1.5; }
+    .verified-badge { font-size: 9px; padding: 1px 5px; border-radius: 2px; font-weight: bold; white-space: nowrap; }
+    .verified-yes { background: #00ff88; color: #000; }
+    .verified-no { background: #3a2a10; color: #f59e0b; border: 1px solid #6a4a10; }
+    .score-bar { display: inline-block; width: 42px; height: 6px; background: #222; border-radius: 3px; overflow: hidden; vertical-align: middle; }
+    .score-bar > i { display: block; height: 100%; background: #00ff88; }
     .keywords-section { margin-bottom: 16px; }
     .keywords-section label { font-size: 11px; color: #888; letter-spacing: 1px; display: block; margin-bottom: 8px; }
     .keyword-row { display: flex; gap: 8px; margin-bottom: 8px; align-items: center; }
@@ -146,8 +152,55 @@
           <div class="keyword-row"><span class="keyword-num">3.</span><input type="text" id="keyword3" placeholder="例: Nintendo DS Not Working"></div>
         </div>
         <div class="form-grid">
-          <div class="form-group"><label>MIN FEEDBACK</label><input type="number" id="minFeedback" placeholder="例: 500" value="500"></div>
-          <div class="form-group"><label>MAX RESULTS（キーワードごと）</label><input type="number" id="itemsPerPage" placeholder="例: 100" value="100"></div>
+          <div class="form-group">
+            <label>MIN FEEDBACK</label>
+            <input type="number" id="minFeedback" placeholder="例: 500" value="500">
+          </div>
+          <div class="form-group">
+            <label>走査する出品数（キーワード×マーケット毎）</label>
+            <select id="maxItems">
+              <option value="200">200（速い）</option>
+              <option value="600" selected>600（推奨）</option>
+              <option value="1200">1200（広い）</option>
+              <option value="2000">2000（最大・遅い）</option>
+            </select>
+            <div class="hint">旧バージョンは200件固定でした。ここを増やすほど発見できるセラーが増えます。</div>
+          </div>
+          <div class="form-group">
+            <label>カテゴリ絞り込み</label>
+            <select id="categoryIds">
+              <option value="1249" selected>ゲーム機・ゲーム（1249）</option>
+              <option value="">絞り込みなし</option>
+            </select>
+            <div class="hint">無関係な出品を母数から除外します。</div>
+          </div>
+          <div class="form-group">
+            <label>コンディション</label>
+            <select id="conditionIds">
+              <option value="" selected>指定なし</option>
+              <option value="7000">ジャンク・部品取りのみ</option>
+              <option value="3000">中古のみ</option>
+              <option value="3000,7000">中古＋ジャンク</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>狙うセラー規模</label>
+            <select id="sizeMode" onchange="resortSellers()">
+              <option value="smb" selected>中小優先（直取引しやすい）</option>
+              <option value="mid">中堅優先</option>
+              <option value="scale">規模順（大手優先）</option>
+            </select>
+            <div class="hint">スコアの重み付けが変わります。結果表示後も切替可。</div>
+          </div>
+          <div class="form-group">
+            <label>並び順</label>
+            <select id="sortMode" onchange="resortSellers()">
+              <option value="score" selected>スコア順</option>
+              <option value="listings">出品数順</option>
+              <option value="feedback">評価数順</option>
+              <option value="rating">評価率順</option>
+            </select>
+          </div>
         </div>
         <div style="margin-top:16px;">
           <label style="font-size:11px; color:#888; letter-spacing:1px;">MARKETS</label>
@@ -165,8 +218,10 @@
       <div class="card" id="resultsCard" style="display:none;">
         <div class="results-header"><h2>▸ RESULTS</h2><span id="resultCount"></span></div>
         <div class="legend">
-          ⭐ <span>優先セラー</span>：Game / Games / Gaming / Handheld / Retro / Console / Vintage / Nintendo / Mario がユーザー名に含まれるセラー（日本除外済み）
-          &nbsp;／&nbsp; SNSアイコン: カラー = 確認済み &nbsp; — = 未取得
+          <span>SCORE</span>：出品数・評価率・規模適合・出品マーケット数・屋号シグナルの合成値（狙うセラー規模の設定で変わります）
+          &nbsp;／&nbsp; <span>LISTINGS</span>：そのセラーの実際の出品数（eBayに問い合わせた実数）
+          &nbsp;／&nbsp; <span>HITS</span>：今回走査した範囲での該当件数
+          &nbsp;／&nbsp; SNSアイコン: カラー = 確認済み &nbsp; — = 未取得（日本発送のセラーは除外済み）
         </div>
         <div id="progressLog"></div>
         <div id="resultsBody"></div>
@@ -241,6 +296,57 @@
       btn.addEventListener('click', () => btn.classList.toggle('active'));
     });
 
+    // ── スコアリング ──────────────────────────────────────────────
+    // 旧バージョンは feedbackScore 降順、つまり「業者の規模順」だった。
+    // 大手ほど直取引に応じにくいので、規模は「適合度」として扱う。
+    const SIZE_BANDS = {
+      smb:   { lo: 500,   hi: 20000  },
+      mid:   { lo: 5000,  hi: 100000 },
+    };
+
+    function clamp01(v) { return Math.max(0, Math.min(1, v)); }
+
+    function sizeFit(feedbackScore, mode) {
+      if (mode === 'scale') return clamp01(Math.log10(1 + feedbackScore) / 6);
+      const band = SIZE_BANDS[mode] || SIZE_BANDS.smb;
+      if (feedbackScore >= band.lo && feedbackScore <= band.hi) return 1;
+      if (feedbackScore < band.lo) return clamp01(feedbackScore / band.lo);
+      // 帯を超えた分は対数で減衰させる（大手を0にはしない）
+      return clamp01(1 - Math.log10(feedbackScore / band.hi) / 1.6);
+    }
+
+    function computeScore(s, mode) {
+      const listings = s.listingCount != null ? s.listingCount : s.hits * 5;
+      const parts = {
+        assortment: clamp01(Math.log10(1 + listings) / 3),                 // 品揃え
+        size:       sizeFit(s.feedbackScore, mode),                        // 規模適合
+        rating:     clamp01((parseFloat(s.feedbackPercentage) - 95) / 5),  // 評価率
+        reach:      clamp01(s.markets.size / 6),                           // 越境展開
+        name:       isPrioritySeller(s.username) ? 1 : 0,                  // 屋号シグナル
+      };
+      const score = 100 * (
+        parts.assortment * 0.30 +
+        parts.size       * 0.30 +
+        parts.rating     * 0.20 +
+        parts.reach      * 0.10 +
+        parts.name       * 0.10
+      );
+      return { score: Math.round(score), parts };
+    }
+
+    function scoreTooltip(s) {
+      const p = s._parts || {};
+      const pct = v => Math.round((v || 0) * 100) + '%';
+      return [
+        `品揃え ${pct(p.assortment)}`,
+        `規模適合 ${pct(p.size)}`,
+        `評価率 ${pct(p.rating)}`,
+        `越境 ${pct(p.reach)}`,
+        `屋号 ${pct(p.name)}`,
+        s.sampleTitles && s.sampleTitles.length ? '\n出品例:\n・' + s.sampleTitles.join('\n・') : '',
+      ].filter(Boolean).join(' / ');
+    }
+
     function contactCell(val, iconCls, label, isLink) {
       if (val === null) {
         return `<td class="contact-col"><div class="contact-cell"><span class="contact-icon unknown ${iconCls}" title="${label}: 未取得">—</span></div></td>`;
@@ -261,13 +367,20 @@
       const ci = { web: null, ig: null, fb: null, email: null, wa: null, x: null };
       const ratingCls = parseFloat(s.feedbackPercentage) >= 99 ? 'rating-high' : parseFloat(s.feedbackPercentage) >= 97 ? 'rating-mid' : 'rating-low';
       const marketsHtml = marketsArr.map(m => `<span class="market-tag">${MARKET_LABELS[m] || m}</span>`).join('');
-      return `<tr class="${priority ? 'priority-row' : ''}" data-username="${s.username}">
-  <td class="left"><div class="seller-name-wrap"><a href="${getSellerUrl(s.username, marketsArr[0])}" target="_blank">${s.username}</a>${priority ? '<span class="priority-badge">⭐ 優先</span>' : ''}</div></td>
+      const listings = s.listingCount != null
+        ? s.listingCount.toLocaleString()
+        : `<span style="color:#555;" title="出品数を取得できませんでした">?</span>`;
+      const price = s.avgPrice != null ? `${s.currency || ''} ${s.avgPrice}` : '—';
+      return `<tr class="${priority ? 'priority-row' : ''}" data-username="${s.username}" title="${scoreTooltip(s).replace(/"/g, '&quot;')}">
+  <td class="left"><div class="seller-name-wrap"><a href="${getSellerUrl(s.username, marketsArr[0])}" target="_blank">${s.username}</a>${priority ? '<span class="priority-badge">⭐</span>' : ''}</div></td>
+  <td><span class="score-bar"><i style="width:${s._score}%"></i></span> <span style="font-size:11px;">${s._score}</span></td>
   <td>${flag} ${s.shipFrom}</td>
   <td><div class="market-tags">${marketsHtml}</div></td>
   <td>${s.feedbackScore.toLocaleString()}</td>
   <td class="${ratingCls}">${s.feedbackPercentage}%</td>
-  <td>${s.itemCount}</td>
+  <td>${listings}</td>
+  <td style="color:#777;">${s.hits}</td>
+  <td style="color:#777; white-space:nowrap;">${price}</td>
   ${contactCell(ci.web,'icon-web','HP',true)}
   ${contactCell(ci.email,'icon-email','Mail',false)}
   ${contactCell(ci.fb,'icon-fb','FB',true)}
@@ -278,6 +391,50 @@
 </tr>`;
     }
 
+    const SELLER_HEAD = '<table class="seller-table"><thead><tr>'
+      + '<th class="left">SELLER</th><th>SCORE</th><th>SHIP FROM</th><th>MARKETS</th>'
+      + '<th>FEEDBACK</th><th>RATING</th><th>LISTINGS</th><th>HITS</th><th>AVG PRICE</th>'
+      + '<th>HP</th><th>MAIL</th><th>FB</th><th>IG</th><th>X</th><th>WA</th><th>ACTION</th>'
+      + '</tr></thead><tbody>';
+
+    let _sellers = [];
+
+    function renderSellers() {
+      const mode = document.getElementById('sizeMode').value;
+      const sortMode = document.getElementById('sortMode').value;
+      _sellers.forEach(s => {
+        const r = computeScore(s, mode);
+        s._score = r.score; s._parts = r.parts;
+      });
+      const sorted = _sellers.slice().sort((a, b) => {
+        if (sortMode === 'listings') return (b.listingCount || 0) - (a.listingCount || 0);
+        if (sortMode === 'feedback') return b.feedbackScore - a.feedbackScore;
+        if (sortMode === 'rating') return parseFloat(b.feedbackPercentage) - parseFloat(a.feedbackPercentage);
+        return b._score - a._score;
+      });
+      const body = document.getElementById('resultsBody');
+      document.getElementById('resultCount').textContent = `${sorted.length} sellers`;
+      body.innerHTML = sorted.length
+        ? SELLER_HEAD + sorted.map(buildSellerRow).join('') + '</tbody></table>'
+        : '<div class="status">条件に合うセラーが見つかりませんでした</div>';
+    }
+
+    function resortSellers() { if (_sellers.length) renderSellers(); }
+
+    // 同時実行数を絞って並列に走らせる（旧実装は完全な逐次で、母数を増やすと待てなかった）
+    async function mapLimit(list, limit, fn) {
+      const out = new Array(list.length);
+      let i = 0;
+      await Promise.all(Array.from({ length: Math.min(limit, list.length) }, async () => {
+        while (true) {
+          const idx = i++;
+          if (idx >= list.length) return;
+          out[idx] = await fn(list[idx], idx);
+        }
+      }));
+      return out;
+    }
+
     async function startSearch() {
       const keywords = [
         document.getElementById('keyword1').value.trim(),
@@ -285,7 +442,9 @@
         document.getElementById('keyword3').value.trim(),
       ].filter(k => k !== '');
       const minFeedback = document.getElementById('minFeedback').value || 0;
-      const itemsPerPage = document.getElementById('itemsPerPage').value || 100;
+      const maxItems = document.getElementById('maxItems').value || 600;
+      const categoryIds = document.getElementById('categoryIds').value;
+      const conditionIds = document.getElementById('conditionIds').value;
       const activeMarkets = [...document.querySelectorAll('.market-btn.active')].map(b => b.dataset.id);
       if (keywords.length === 0) { alert('キーワードを1つ以上入力してください'); return; }
       if (activeMarkets.length === 0) { alert('マーケットを1つ以上選択してください'); return; }
@@ -297,46 +456,93 @@
       const resultsBody = document.getElementById('resultsBody');
       resultsCard.style.display = 'block';
       resultsBody.innerHTML = '';
-      progressLog.innerHTML = '<div class="status">検索中...</div>';
+      _sellers = [];
+
+      const combos = [];
+      for (const keyword of keywords) for (const market of activeMarkets) combos.push({ keyword, market });
+
+      let done = 0, scanned = 0;
+      const errors = [];
+      const fallbacks = [];
+      progressLog.innerHTML = `<div class="progress">🔍 走査中 0/${combos.length}</div>`;
+
+      const parts = await mapLimit(combos, 4, async ({ keyword, market }) => {
+        const qs = new URLSearchParams({
+          keyword, globalId: market, maxItems, minFeedback, categoryIds, conditionIds,
+        });
+        try {
+          const res = await fetch(`/api/search?${qs}`);
+          const data = await res.json();
+          // 旧実装はエラーを握りつぶして「0件」に見せていた。ここでは表に出す。
+          if (data.error) errors.push(`${keyword} / ${market}: ${data.error}`);
+          if (data.categoryFallback) fallbacks.push(market);
+          scanned += data.scanned || 0;
+          return { keyword, market, sellers: data.sellers || [] };
+        } catch (e) {
+          errors.push(`${keyword} / ${market}: ${e.message}`);
+          return { keyword, market, sellers: [] };
+        } finally {
+          done++;
+          progressLog.innerHTML = `<div class="progress">🔍 走査中 ${done}/${combos.length}（出品 ${scanned.toLocaleString()} 件を確認）</div>`;
+        }
+      });
 
       const allSellers = {};
-      let totalRequests = keywords.length * activeMarkets.length;
-      let completed = 0;
-
-      for (const keyword of keywords) {
-        for (const market of activeMarkets) {
-          try {
-            progressLog.innerHTML = `<div class="progress">🔍 検索中: "${keyword}" / ${market} (${completed + 1}/${totalRequests})</div>`;
-            const res = await fetch(`/api/search?keyword=${encodeURIComponent(keyword)}&globalId=${market}&itemsPerPage=${itemsPerPage}&minFeedback=${minFeedback}`);
-            const data = await res.json();
-            if (data.sellers) {
-              for (const seller of data.sellers) {
-                const key = seller.username;
-                if (!allSellers[key]) allSellers[key] = { ...seller, markets: new Set(), keywords: new Set(), itemCount: 0 };
-                allSellers[key].markets.add(market);
-                allSellers[key].keywords.add(keyword);
-                allSellers[key].itemCount += seller.itemCount;
-              }
-            }
-          } catch (e) { console.error(e); }
-          completed++;
+      for (const part of parts) {
+        for (const seller of part.sellers) {
+          const key = seller.username;
+          if (!allSellers[key]) {
+            allSellers[key] = {
+              ...seller, markets: new Set(), keywords: new Set(),
+              hits: 0, sampleTitles: [], listingCount: null,
+            };
+          }
+          const t = allSellers[key];
+          t.markets.add(part.market);
+          t.keywords.add(part.keyword);
+          t.hits += seller.hits || 0;
+          t.feedbackScore = Math.max(t.feedbackScore, seller.feedbackScore || 0);
+          for (const title of (seller.sampleTitles || [])) {
+            if (t.sampleTitles.length < 4 && !t.sampleTitles.includes(title)) t.sampleTitles.push(title);
+          }
+          if (seller.avgPrice != null && t.avgPrice == null) { t.avgPrice = seller.avgPrice; t.currency = seller.currency; }
         }
       }
 
-      progressLog.innerHTML = '';
-      const sellers = Object.values(allSellers).sort((a, b) => {
-        const ap = isPrioritySeller(a.username) ? 1 : 0;
-        const bp = isPrioritySeller(b.username) ? 1 : 0;
-        if (bp !== ap) return bp - ap;
-        return b.feedbackScore - a.feedbackScore;
-      });
+      _sellers = Object.values(allSellers);
+      renderSellers();
 
-      document.getElementById('resultCount').textContent = `${sellers.length} sellers found`;
-      if (sellers.length === 0) {
-        resultsBody.innerHTML = '<div class="status">条件に合うセラーが見つかりませんでした</div>';
-      } else {
-        resultsBody.innerHTML = '<table class="seller-table"><thead><tr><th class="left">SELLER</th><th>SHIP FROM</th><th>MARKETS</th><th>FEEDBACK</th><th>RATING</th><th>ITEMS</th><th>HP</th><th>MAIL</th><th>FB</th><th>IG</th><th>X</th><th>WA</th><th>ACTION</th></tr></thead><tbody>' + sellers.map(buildSellerRow).join('') + '</tbody></table>';
+      // 上位セラーについて「本当の出品数」を取りに行く（旧UIのITEMS列は出品数ではなかった）
+      if (_sellers.length) {
+        progressLog.innerHTML = `<div class="progress">📦 上位セラーの出品数を確認中...</div>`;
+        const top = _sellers
+          .slice().sort((a, b) => b.hits - a.hits).slice(0, 60)
+          .map(s => ({ username: s.username, market: [...s.markets][0] }));
+        try {
+          const res = await fetch('/api/seller-stats', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ sellers: top, keyword: keywords[0], categoryIds, conditionIds }),
+          });
+          const data = await res.json();
+          const byName = new Map((data.stats || []).map(x => [x.username, x]));
+          _sellers.forEach(s => {
+            const st = byName.get(s.username);
+            if (st) s.listingCount = st.categoryCount != null ? st.categoryCount : st.keywordCount;
+          });
+          renderSellers();
+        } catch (e) {
+          errors.push(`出品数の取得に失敗: ${e.message}`);
+        }
       }
+
+      const fbMarkets = [...new Set(fallbacks)];
+      progressLog.innerHTML = [
+        `<div class="progress">✅ 出品 ${scanned.toLocaleString()} 件を走査 → ${_sellers.length} セラー</div>`,
+        fbMarkets.length ? `<div style="color:#f59e0b; font-size:11px; margin-top:6px;">ℹ ${fbMarkets.join(' / ')} ではカテゴリ絞り込みが効かなかったため、カテゴリ無しで検索しました</div>` : '',
+        errors.length ? `<div style="color:#ff2d6b; font-size:11px; margin-top:6px;">⚠ ${errors.length}件のエラー:<br>${errors.slice(0, 5).join('<br>')}</div>` : '',
+      ].join('');
+
       btn.disabled = false; btn.textContent = '🔍 SEARCH SELLERS';
     }
 
@@ -493,7 +699,7 @@
       const body = document.getElementById('shopResultsBody');
       card.style.display = 'block';
       body.innerHTML = '';
-      progressLog.innerHTML = '<div class="status">🔍 検索中... AI分析中... しばらくお待ちください</div>';
+      progressLog.innerHTML = '<div class="status">🔍 検索 → 候補の選別 → 上位候補のページを実際に取得 → 分析 の順に実行中です（40秒前後かかります）</div>';
 
       try {
         const res = await fetch('/api/shop-search', {
@@ -523,46 +729,62 @@
             <button onclick="downloadCSV()" style="background:#1a1a1a; border:1px solid #00ff88; color:#00ff88; padding:6px 14px; border-radius:4px; cursor:pointer; font-family:'Courier New',monospace; font-size:11px;">📥 CSV ダウンロード</button>
           </div>`;
 
+          // 取得状況（何件を実際に開いて、何件から連絡先が取れたか）
+          if (data.stats) {
+            html += `<div style="font-size:11px; color:#666; margin-bottom:12px;">
+              検索ヒット ${data.stats.rawResults} 件 → 重複除去後 ${data.stats.uniqueDomains} ドメイン →
+              <span style="color:#00ff88;">${data.stats.scraped} 件のページを実際に取得</span> →
+              <span style="color:#00ff88;">${data.stats.withContact} 件から連絡先を実測</span>
+            </div>`;
+          }
+
           // テーブル
           html += `<div style="overflow-x:auto;"><table class="shop-table"><thead><tr>
-            <th style="min-width:160px;">会社名</th>
+            <th style="min-width:180px;">会社名</th>
             <th>国</th>
             <th>カテゴリ</th>
             <th>関連度</th>
             <th>直取</th>
+            <th>仕入</th>
+            <th>検証</th>
             <th>HP</th>
             <th>IG</th>
             <th>FB</th>
             <th>X</th>
             <th>Mail</th>
             <th>WA</th>
-            <th>eBay</th>
           </tr></thead><tbody>`;
+
+          const BUY_LABEL = { yes: '有', likely: '可能性', unknown: '不明', no: '無' };
+          const BUY_COLOR = { yes: '#00ff88', likely: '#f59e0b', unknown: '#666', no: '#444' };
 
           data.results.forEach(s => {
             const stars = '★'.repeat(s.relevance_score || 0) + '☆'.repeat(5 - (s.relevance_score || 0));
             const scoreColor = (s.relevance_score || 0) >= 4 ? '#00ff88' : (s.relevance_score || 0) >= 3 ? '#f59e0b' : '#888';
             const directColor = s.direct_score === 'A' ? '#00ff88' : s.direct_score === 'B' ? '#f59e0b' : '#888';
             const lnk = (url, label) => url ? `<a href="${url}" target="_blank" style="color:#00ff88; font-size:11px; font-weight:bold;">${label}</a>` : '<span style="color:#333;">—</span>';
+            // 選定理由とページからの引用をツールチップに入れる
+            const tip = [s.reason, s.evidence ? `根拠: ${s.evidence}` : ''].filter(Boolean).join('\n').replace(/"/g, '&quot;');
 
-            html += `<tr title="${(s.reason || '').replace(/"/g, '&quot;')}">
+            html += `<tr title="${tip}">
               <td>
                 <div style="font-size:12px; color:#fff; font-weight:bold;">${s.company_name || ''}</div>
                 <div style="font-size:10px; color:#555; margin-top:3px; line-height:1.5;">${s.products || ''}</div>
-                ${s.price_range ? `<div style="font-size:10px; color:#888; margin-top:2px;">${s.price_range}</div>` : ''}
+                ${s.evidence ? `<div style="font-size:10px; color:#3a7a4a; margin-top:3px; line-height:1.4;">“${s.evidence}”</div>` : ''}
                 <div style="margin-top:4px;"><a href="${s.source_url || '#'}" target="_blank" style="font-size:9px; color:#444;">🔗 情報元</a></div>
               </td>
               <td style="white-space:nowrap; font-size:11px;">${s.country || ''}</td>
               <td><span class="angle-badge">${s.category || ''}</span></td>
               <td style="color:${scoreColor}; white-space:nowrap; font-size:11px;">${stars}</td>
               <td style="color:${directColor}; font-weight:bold; font-size:14px;">${s.direct_score || ''}</td>
+              <td style="color:${BUY_COLOR[s.buys_used_stock] || '#666'}; font-size:11px; white-space:nowrap;">${BUY_LABEL[s.buys_used_stock] || '不明'}</td>
+              <td><span class="verified-badge ${s.verified ? 'verified-yes' : 'verified-no'}">${s.verified ? '実測' : '未検証'}</span></td>
               <td>${lnk(s.website, 'HP')}</td>
               <td>${lnk(s.instagram, 'IG')}</td>
               <td>${lnk(s.facebook, 'FB')}</td>
               <td>${lnk(s.twitter, 'X')}</td>
-              <td>${s.email ? `<span style="color:#f59e0b; font-size:11px;">${s.email}</span>` : '<span style="color:#333;">—</span>'}</td>
+              <td>${s.email ? `<a href="mailto:${s.email}" style="color:#f59e0b; font-size:11px;">${s.email}</a>` : '<span style="color:#333;">—</span>'}</td>
               <td>${s.whatsapp ? `<span style="color:#25d366; font-size:11px;">${s.whatsapp}</span>` : '<span style="color:#333;">—</span>'}</td>
-              <td>${lnk(s.ebay, 'eBay')}</td>
             </tr>`;
           });
 
@@ -580,13 +802,13 @@
     function downloadCSV() {
       const results = window._shopResults || [];
       if (!results.length) return;
-      const headers = ['会社名','国','カテゴリ','情報元','ウェブサイト','Instagram','Facebook','Twitter/X','メール','WhatsApp','eBayストア','価格帯','取扱商品','直取スコア','選定理由','関連度スコア'];
+      const headers = ['会社名','国','カテゴリ','情報元','ウェブサイト','Instagram','Facebook','Twitter/X','メール','WhatsApp','ページ検証','中古仕入','取扱商品','直取スコア','関連度スコア','選定理由','根拠（ページ引用）'];
       const rows = results.map(s => [
         s.company_name, s.country, s.category, s.source_url,
         s.website, s.instagram, s.facebook, s.twitter,
-        s.email, s.whatsapp, s.ebay, s.price_range, s.products,
-        s.direct_score, s.reason, s.relevance_score
-      ].map(v => `"${(v || '').toString().replace(/"/g, '""')}"`));
+        s.email, s.whatsapp, s.verified ? '実測' : '未検証', s.buys_used_stock, s.products,
+        s.direct_score, s.relevance_score, s.reason, s.evidence
+      ].map(v => `"${(v === null || v === undefined ? '' : v).toString().replace(/"/g, '""')}"`));
       const csv = [headers.map(h => `"${h}"`).join(','), ...rows.map(r => r.join(','))].join('\n');
       const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
@@ -612,6 +834,7 @@
         { key: 'wa',    cls: 'icon-wa',    label: 'WA',   isLink: false },
       ];
       const cells = row.querySelectorAll('.contact-col');
+      const suffix = contactInfo.verified ? '（実測）' : '（AI推定）';
       defs.forEach((d, i) => {
         const val = contactInfo[d.key];
         if (val === undefined || val === null) return;
@@ -622,14 +845,14 @@
         } else {
           const tag = d.isLink ? `a href="${val}" target="_blank"` : 'span';
           const close = d.isLink ? 'a' : 'span';
-          cell.innerHTML = `<div class="contact-cell"><${tag} class="contact-icon found ${d.cls}" title="${d.label}: ${val}">${d.label}</${close}></div>`;
+          cell.innerHTML = `<div class="contact-cell"><${tag} class="contact-icon found ${d.cls}" title="${d.label}${suffix}: ${val}">${d.label}</${close}></div>`;
         }
       });
     }
 
     async function generateMessage(username, shipFrom, markets, feedback, rating, keywords) {
       document.getElementById('msgModal').classList.add('active');
-      document.getElementById('msgContent').innerHTML = '<div class="generating">⏳ SNS情報を取得中... (Web Search)</div>';
+      document.getElementById('msgContent').innerHTML = '<div class="generating">⏳ 公式サイトをWeb検索中 → ページを開いて連絡先を実測 → 文面生成（20〜40秒）</div>';
       try {
         const response = await fetch('/api/message', {
           method: 'POST',
@@ -638,7 +861,15 @@
         });
         const data = await response.json();
         if (data.message) {
-          document.getElementById('msgContent').innerHTML = `<textarea id="msgText">${data.message}</textarea>`;
+          const ci = data.contactInfo || {};
+          // 連絡先が「ページから実測できたもの」か「検索結果からのAI推定」かを明示する
+          const src = ci.verified
+            ? '<span style="color:#00ff88;">✅ 公式サイトのHTMLから実測</span>'
+            : `<span style="color:#f59e0b;">⚠ Web検索からのAI推定（確度: ${ci.confidence || '不明'}）— 送信前にご確認ください</span>`;
+          const found = ['web','email','ig','fb','x','wa'].filter(k => ci[k]).length;
+          document.getElementById('msgContent').innerHTML =
+            `<div style="font-size:11px; margin-bottom:10px;">${src}　連絡先 ${found} 件${ci.note ? `<div style="color:#666; margin-top:4px;">${ci.note}</div>` : ''}</div>`
+            + `<textarea id="msgText">${data.message}</textarea>`;
           if (data.contactInfo) updateContactIcons(username, data.contactInfo);
         } else {
           document.getElementById('msgContent').innerHTML = `<div class="generating" style="color:#ff2d6b;">エラー: ${data.error || '不明なエラー'}</div>`;
