@@ -6,8 +6,10 @@
 // 新実装は3段構え:
 //   1. Serper で候補を集める（ドメイン単位で重複排除）
 //   2. Claude で「本当に取引先になり得る店か」を選別（安い判定パス）
-//   3. 上位候補だけ実際にページを取得 → 連絡先は HTML から実測、
-//      Claude は業態の説明と評価だけを担当（連絡先は生成させない）
+//   3. 上位候補だけ実際にページを取得 → 連絡先は HTML から実測
+//
+// 分析（業態の説明・評価）は /api/shop-analyze に分離してある。
+// 1リクエストに全部入れると Vercel の60秒上限を超えて 504 になるため。
 const { z } = require('zod');
 const { parseJson } = require('../lib/claude');
 const { scrapeMany } = require('../lib/scrape');
@@ -47,22 +49,6 @@ const TriageSchema = z.object({
   })),
 });
 
-const DetailSchema = z.object({
-  summary: z.string(),
-  shops: z.array(z.object({
-    index: z.number().int(),
-    company_name: z.string(),
-    country: z.string(),
-    category: z.string(),
-    products: z.string(),
-    is_real_shop: z.boolean(),
-    buys_used_stock: z.enum(['yes', 'likely', 'unknown', 'no']),
-    direct_score: z.enum(['A', 'B', 'C']),
-    relevance_score: z.number().int(),
-    reason: z.string(),
-    evidence: z.string(),
-  })),
-});
 
 const BUSINESS_CONTEXT = `Kenja Games は日本の中古・ジャンク携帯ゲーム機（Game Boy / GBC / GBA / GBA SP / DS / 3DS / PSP など）の卸売業者です。
 海外の「まとまった数を仕入れてくれる」小売店・リペア店・卸業者を探しています。
@@ -160,57 +146,21 @@ ${deduped.map((r, i) => `[${i}] ${r.country} / ${r.angle}\nTitle: ${r.title}\nUR
   const scraped = await scrapeMany(toScrape.map(c => deduped[c.index].url), { concurrency: 8 });
   const scrapeByIndex = new Map(toScrape.map((c, i) => [c.index, scraped[i]]));
 
-  // ── Step 4: 業態の説明と評価だけをClaudeに担当させる ──
-  const detailInput = toScrape.map(c => {
+  // ページ本文と実測した連絡先を返す。分析は /api/shop-analyze が担当する。
+  const candidates = toScrape.map(c => {
     const r = deduped[c.index];
     const s = scrapeByIndex.get(c.index) || {};
-    return `[${c.index}] ${r.country} / ${r.angle}
-URL: ${r.url}
-検索タイトル: ${r.title}
-検索スニペット: ${r.snippet}
-ページ取得: ${s.fetched ? '成功' : '失敗（本文なし）'}
-ページタイトル: ${s.title || '-'}
-ページ本文抜粋: ${s.fetched ? (s.excerpt || '').slice(0, 1800) : '(取得できず)'}`;
-  }).join('\n\n---\n\n');
-
-  let detail = { summary: '', shops: [] };
-  try {
-    detail = await parseJson({
-      schemaName: 'shop_analysis',
-      schema: DetailSchema,
-      effort: 'high',
-      maxTokens: 16000,
-      system: BUSINESS_CONTEXT,
-      prompt: `以下は候補サイトの検索結果と、実際に取得したページ本文です。各候補について日本語で評価してください。
-
-重要なルール:
-- 判断は「ページ本文抜粋」に実際に書かれている内容のみを根拠にしてください。書かれていないことを推測で埋めないでください。
-- ページ取得が失敗している候補は、検索スニペットだけが根拠です。その場合 is_real_shop の判断は控えめにし、evidence に「スニペットのみ」と書いてください。
-- evidence には判断の根拠になったページ上の記述を原文のまま短く引用してください。引用できない場合は空文字にしてください。
-- buys_used_stock は「中古在庫を仕入れている形跡があるか」です（buy/sell/trade-in/we buy などの記述）。
-- 連絡先（メール・SNS）は別途こちらで抽出済みなので、あなたは出力しないでください。
-- relevance_score は1〜5。Kenja Games の卸先としての有望度です。
-- 全候補を漏れなく返してください。
-
-${detailInput}`,
-    });
-  } catch (e) {
-    console.error('detail analysis failed:', e.message);
-  }
-
-  const detailByIndex = new Map((detail.shops || []).map(s => [s.index, s]));
-
-  const results = toScrape.map(c => {
-    const r = deduped[c.index];
-    const s = scrapeByIndex.get(c.index) || {};
-    const d = detailByIndex.get(c.index) || {};
     return {
-      company_name: d.company_name || s.title || r.title,
-      country: d.country || r.country,
+      index: c.index,
+      company_name: s.title || r.title,
+      country: r.country,
       angle: r.angle,
-      category: d.category || r.angle,
       source_url: r.url,
       website: hostOf(r.url) ? `https://${hostOf(r.url)}` : '',
+      title: r.title,
+      snippet: r.snippet,
+      page_title: s.title || '',
+      excerpt: s.fetched ? (s.excerpt || '').slice(0, 1500) : '',
       // ↓ ここから下はすべてページHTMLからの実測値。AIは関与しない
       verified: !!s.fetched,
       email: s.email || '',
@@ -219,35 +169,18 @@ ${detailInput}`,
       facebook: s.facebook || '',
       twitter: s.twitter || '',
       whatsapp: s.whatsapp || '',
-      // ↓ ここから下はAIの判断
-      products: d.products || r.snippet,
-      is_real_shop: d.is_real_shop ?? null,
-      buys_used_stock: d.buys_used_stock || 'unknown',
-      direct_score: d.direct_score || 'C',
-      relevance_score: d.relevance_score || 0,
-      reason: d.reason || '',
-      evidence: d.evidence || '',
     };
   });
 
-  // 連絡手段が実測できた店を優先し、その中で有望度順
-  results.sort((a, b) => {
-    const ac = (a.email || a.instagram || a.whatsapp) ? 1 : 0;
-    const bc = (b.email || b.instagram || b.whatsapp) ? 1 : 0;
-    if (ac !== bc) return bc - ac;
-    return (b.relevance_score || 0) - (a.relevance_score || 0);
-  });
-
   return res.status(200).json({
-    results,
-    summary: detail.summary || '',
+    candidates,
     combos: combos.length,
-    total: results.length,
+    total: candidates.length,
     stats: {
       rawResults: rawResults.length,
       uniqueDomains: deduped.length,
-      scraped: results.filter(r => r.verified).length,
-      withContact: results.filter(r => r.email || r.instagram || r.whatsapp).length,
+      scraped: candidates.filter(c => c.verified).length,
+      withContact: candidates.filter(c => c.email || c.instagram || c.whatsapp).length,
     },
   });
 };

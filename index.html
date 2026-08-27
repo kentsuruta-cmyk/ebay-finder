@@ -688,6 +688,99 @@
       return activeCards.map(c => selectedAngles[parseInt(c.dataset.index)]).filter(Boolean);
     }
 
+    // 結果テーブルの描画。1段階目（連絡先の実測まで）と2段階目（分析済み）の
+    // どちらでも同じ関数で描く。analyzing=true のときは分析待ちの表示を出す。
+    function renderShopResults({ results, summary, stats, combos, analyzing }) {
+      const body = document.getElementById('shopResultsBody');
+      document.getElementById('shopResultCount').textContent =
+        `${results.length} shops${combos ? ` (${combos} combos)` : ''}`;
+
+      let html = '';
+
+      if (analyzing) {
+        html += `<div style="background:#1a1408; border:1px solid #6a4a10; border-radius:6px; padding:10px 14px; margin-bottom:16px; font-size:12px; color:#f59e0b;">
+          ⏳ 連絡先の抽出まで完了しました。いま各社の業態と有望度を分析しています（20〜40秒）…
+        </div>`;
+      }
+
+      if (summary) {
+        html += `<div style="background:#0f1f10; border:1px solid #1a4a1a; border-radius:6px; padding:16px; margin-bottom:20px; font-size:12px; color:#aaa; line-height:1.7;">
+          <span style="color:#00ff88; font-size:11px; letter-spacing:1px;">▸ AI SUMMARY</span><br><br>${summary}
+        </div>`;
+      }
+
+      // 取得状況（何件を実際に開いて、何件から連絡先が取れたか）
+      if (stats) {
+        html += `<div style="font-size:11px; color:#666; margin-bottom:12px;">
+          検索ヒット ${stats.rawResults} 件 → 重複除去後 ${stats.uniqueDomains} ドメイン →
+          <span style="color:#00ff88;">${stats.scraped} 件のページを実際に取得</span> →
+          <span style="color:#00ff88;">${stats.withContact} 件から連絡先を実測</span>
+        </div>`;
+      }
+
+      html += `<div style="text-align:right; margin-bottom:12px;">
+        <button onclick="downloadCSV()" style="background:#1a1a1a; border:1px solid #00ff88; color:#00ff88; padding:6px 14px; border-radius:4px; cursor:pointer; font-family:'Courier New',monospace; font-size:11px;">📥 CSV ダウンロード</button>
+      </div>`;
+
+      html += `<div style="overflow-x:auto;"><table class="shop-table"><thead><tr>
+        <th style="min-width:180px;">会社名</th>
+        <th>国</th>
+        <th>カテゴリ</th>
+        <th>関連度</th>
+        <th>直取</th>
+        <th>仕入</th>
+        <th>検証</th>
+        <th>HP</th>
+        <th>IG</th>
+        <th>FB</th>
+        <th>X</th>
+        <th>Mail</th>
+        <th>WA</th>
+      </tr></thead><tbody>`;
+
+      const BUY_LABEL = { yes: '有', likely: '可能性', unknown: '不明', no: '無' };
+      const BUY_COLOR = { yes: '#00ff88', likely: '#f59e0b', unknown: '#666', no: '#444' };
+
+      results.forEach(s => {
+        const score = s.relevance_score || 0;
+        const stars = score ? '★'.repeat(score) + '☆'.repeat(5 - score) : '<span style="color:#444;">分析待ち</span>';
+        const scoreColor = score >= 4 ? '#00ff88' : score >= 3 ? '#f59e0b' : '#888';
+        const directColor = s.direct_score === 'A' ? '#00ff88' : s.direct_score === 'B' ? '#f59e0b' : '#888';
+        const lnk = (url, label) => url ? `<a href="${url}" target="_blank" style="color:#00ff88; font-size:11px; font-weight:bold;">${label}</a>` : '<span style="color:#333;">—</span>';
+        const tip = [s.reason, s.evidence ? `根拠: ${s.evidence}` : ''].filter(Boolean).join('\n').replace(/"/g, '&quot;');
+
+        html += `<tr title="${tip}">
+          <td>
+            <div style="font-size:12px; color:#fff; font-weight:bold;">${s.company_name || ''}</div>
+            <div style="font-size:10px; color:#555; margin-top:3px; line-height:1.5;">${s.products || ''}</div>
+            ${s.evidence ? `<div style="font-size:10px; color:#3a7a4a; margin-top:3px; line-height:1.4;">“${s.evidence}”</div>` : ''}
+            <div style="margin-top:4px;"><a href="${s.source_url || '#'}" target="_blank" style="font-size:9px; color:#444;">🔗 情報元</a></div>
+          </td>
+          <td style="white-space:nowrap; font-size:11px;">${s.country || ''}</td>
+          <td><span class="angle-badge">${s.category || ''}</span></td>
+          <td style="color:${scoreColor}; white-space:nowrap; font-size:11px;">${stars}</td>
+          <td style="color:${directColor}; font-weight:bold; font-size:14px;">${score ? (s.direct_score || '') : '—'}</td>
+          <td style="color:${BUY_COLOR[s.buys_used_stock] || '#666'}; font-size:11px; white-space:nowrap;">${score ? (BUY_LABEL[s.buys_used_stock] || '不明') : '—'}</td>
+          <td><span class="verified-badge ${s.verified ? 'verified-yes' : 'verified-no'}">${s.verified ? '実測' : '未検証'}</span></td>
+          <td>${lnk(s.website, 'HP')}</td>
+          <td>${lnk(s.instagram, 'IG')}</td>
+          <td>${lnk(s.facebook, 'FB')}</td>
+          <td>${lnk(s.twitter, 'X')}</td>
+          <td>${s.email ? `<a href="mailto:${s.email}" style="color:#f59e0b; font-size:11px;">${s.email}</a>` : '<span style="color:#333;">—</span>'}</td>
+          <td>${s.whatsapp ? `<span style="color:#25d366; font-size:11px;">${s.whatsapp}</span>` : '<span style="color:#333;">—</span>'}</td>
+        </tr>`;
+      });
+
+      html += '</tbody></table></div>';
+      body.innerHTML = html;
+      window._shopResults = results;
+    }
+
+    // 検索は2段階に分かれている。
+    // 1) /api/shop-search   … 検索 → 選別 → ページ本文の取得（連絡先を実測）
+    // 2) /api/shop-analyze  … 取得した本文をもとに業態と有望度を評価
+    // 1リクエストにまとめるとVercelの60秒上限を超えて504になるため分けている。
+    // 1段目が終わった時点で連絡先つきの表を出し、分析結果は後から差し替える。
     async function startShopSearch() {
       const angles = getSelectedAngles();
       const countries = getSelectedCountries();
@@ -700,102 +793,70 @@
       const body = document.getElementById('shopResultsBody');
       card.style.display = 'block';
       body.innerHTML = '';
-      progressLog.innerHTML = '<div class="status">🔍 検索 → 候補の選別 → 上位候補のページを実際に取得 → 分析 の順に実行中です（40秒前後かかります）</div>';
+      progressLog.innerHTML = '<div class="status">🔍 ① 検索 → 候補の選別 → 上位候補のページを実際に取得しています（30秒前後）…</div>';
 
+      let stage1;
       try {
         const res = await fetch('/api/shop-search', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ angles, countries })
         });
-        const data = await res.json();
+        stage1 = await res.json();
+        if (!res.ok) throw new Error(stage1.error || `検索に失敗しました (HTTP ${res.status})`);
+      } catch (e) {
         progressLog.innerHTML = '';
+        body.innerHTML = `<div class="status" style="color:#ff2d6b;">エラー: ${e.message}</div>`;
+        btn.disabled = false; btn.textContent = '🔍 SEARCH SHOPS';
+        updateSearchBtn();
+        return;
+      }
 
-        if (!data.results || data.results.length === 0) {
-          body.innerHTML = '<div class="status">結果が見つかりませんでした</div>';
-        } else {
-          document.getElementById('shopResultCount').textContent = `${data.results.length} sellers found (${data.combos} combos)`;
+      const candidates = stage1.candidates || [];
+      if (candidates.length === 0) {
+        progressLog.innerHTML = '';
+        body.innerHTML = '<div class="status">結果が見つかりませんでした</div>';
+        btn.disabled = false; btn.textContent = '🔍 SEARCH SHOPS';
+        updateSearchBtn();
+        return;
+      }
 
-          let html = '';
+      // 1段目の結果をすぐ出す（連絡先はこの時点で確定している）
+      progressLog.innerHTML = '';
+      btn.textContent = '⏳ ANALYZING...';
+      renderShopResults({
+        results: candidates,
+        summary: '',
+        stats: stage1.stats,
+        combos: stage1.combos,
+        analyzing: true,
+      });
 
-          // AIサマリー
-          if (data.summary) {
-            html += `<div style="background:#0f1f10; border:1px solid #1a4a1a; border-radius:6px; padding:16px; margin-bottom:20px; font-size:12px; color:#aaa; line-height:1.7;">
-              <span style="color:#00ff88; font-size:11px; letter-spacing:1px;">▸ AI SUMMARY</span><br><br>${data.summary}
-            </div>`;
-          }
+      // 2段目：分析
+      try {
+        const res2 = await fetch('/api/shop-analyze', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ candidates })
+        });
+        const data2 = await res2.json();
+        if (!res2.ok) throw new Error(data2.error || `分析に失敗しました (HTTP ${res2.status})`);
 
-          // CSVダウンロードボタン
-          html += `<div style="text-align:right; margin-bottom:12px;">
-            <button onclick="downloadCSV()" style="background:#1a1a1a; border:1px solid #00ff88; color:#00ff88; padding:6px 14px; border-radius:4px; cursor:pointer; font-family:'Courier New',monospace; font-size:11px;">📥 CSV ダウンロード</button>
-          </div>`;
-
-          // 取得状況（何件を実際に開いて、何件から連絡先が取れたか）
-          if (data.stats) {
-            html += `<div style="font-size:11px; color:#666; margin-bottom:12px;">
-              検索ヒット ${data.stats.rawResults} 件 → 重複除去後 ${data.stats.uniqueDomains} ドメイン →
-              <span style="color:#00ff88;">${data.stats.scraped} 件のページを実際に取得</span> →
-              <span style="color:#00ff88;">${data.stats.withContact} 件から連絡先を実測</span>
-            </div>`;
-          }
-
-          // テーブル
-          html += `<div style="overflow-x:auto;"><table class="shop-table"><thead><tr>
-            <th style="min-width:180px;">会社名</th>
-            <th>国</th>
-            <th>カテゴリ</th>
-            <th>関連度</th>
-            <th>直取</th>
-            <th>仕入</th>
-            <th>検証</th>
-            <th>HP</th>
-            <th>IG</th>
-            <th>FB</th>
-            <th>X</th>
-            <th>Mail</th>
-            <th>WA</th>
-          </tr></thead><tbody>`;
-
-          const BUY_LABEL = { yes: '有', likely: '可能性', unknown: '不明', no: '無' };
-          const BUY_COLOR = { yes: '#00ff88', likely: '#f59e0b', unknown: '#666', no: '#444' };
-
-          data.results.forEach(s => {
-            const stars = '★'.repeat(s.relevance_score || 0) + '☆'.repeat(5 - (s.relevance_score || 0));
-            const scoreColor = (s.relevance_score || 0) >= 4 ? '#00ff88' : (s.relevance_score || 0) >= 3 ? '#f59e0b' : '#888';
-            const directColor = s.direct_score === 'A' ? '#00ff88' : s.direct_score === 'B' ? '#f59e0b' : '#888';
-            const lnk = (url, label) => url ? `<a href="${url}" target="_blank" style="color:#00ff88; font-size:11px; font-weight:bold;">${label}</a>` : '<span style="color:#333;">—</span>';
-            // 選定理由とページからの引用をツールチップに入れる
-            const tip = [s.reason, s.evidence ? `根拠: ${s.evidence}` : ''].filter(Boolean).join('\n').replace(/"/g, '&quot;');
-
-            html += `<tr title="${tip}">
-              <td>
-                <div style="font-size:12px; color:#fff; font-weight:bold;">${s.company_name || ''}</div>
-                <div style="font-size:10px; color:#555; margin-top:3px; line-height:1.5;">${s.products || ''}</div>
-                ${s.evidence ? `<div style="font-size:10px; color:#3a7a4a; margin-top:3px; line-height:1.4;">“${s.evidence}”</div>` : ''}
-                <div style="margin-top:4px;"><a href="${s.source_url || '#'}" target="_blank" style="font-size:9px; color:#444;">🔗 情報元</a></div>
-              </td>
-              <td style="white-space:nowrap; font-size:11px;">${s.country || ''}</td>
-              <td><span class="angle-badge">${s.category || ''}</span></td>
-              <td style="color:${scoreColor}; white-space:nowrap; font-size:11px;">${stars}</td>
-              <td style="color:${directColor}; font-weight:bold; font-size:14px;">${s.direct_score || ''}</td>
-              <td style="color:${BUY_COLOR[s.buys_used_stock] || '#666'}; font-size:11px; white-space:nowrap;">${BUY_LABEL[s.buys_used_stock] || '不明'}</td>
-              <td><span class="verified-badge ${s.verified ? 'verified-yes' : 'verified-no'}">${s.verified ? '実測' : '未検証'}</span></td>
-              <td>${lnk(s.website, 'HP')}</td>
-              <td>${lnk(s.instagram, 'IG')}</td>
-              <td>${lnk(s.facebook, 'FB')}</td>
-              <td>${lnk(s.twitter, 'X')}</td>
-              <td>${s.email ? `<a href="mailto:${s.email}" style="color:#f59e0b; font-size:11px;">${s.email}</a>` : '<span style="color:#333;">—</span>'}</td>
-              <td>${s.whatsapp ? `<span style="color:#25d366; font-size:11px;">${s.whatsapp}</span>` : '<span style="color:#333;">—</span>'}</td>
-            </tr>`;
-          });
-
-          html += '</tbody></table></div>';
-          body.innerHTML = html;
-          window._shopResults = data.results;
+        renderShopResults({
+          results: data2.results || candidates,
+          summary: data2.summary || '',
+          stats: stage1.stats,
+          combos: stage1.combos,
+          analyzing: false,
+        });
+        if (data2.analyzedCount != null && data2.analyzedCount < (data2.total || 0)) {
+          progressLog.innerHTML = `<div style="color:#f59e0b; font-size:11px;">⚠ ${data2.total - data2.analyzedCount} 件は分析できませんでした（連絡先は取得済みです）</div>`;
         }
       } catch (e) {
-        body.innerHTML = `<div class="status" style="color:#ff2d6b;">エラー: ${e.message}</div>`;
+        // 分析に失敗しても、実測した連絡先は使える状態で残す
+        progressLog.innerHTML = `<div style="color:#ff2d6b; font-size:11px;">分析に失敗しました: ${e.message}（連絡先は取得済みなので、上の表とCSVはそのまま使えます）</div>`;
       }
+
       btn.disabled = false; btn.textContent = '🔍 SEARCH SHOPS';
       updateSearchBtn();
     }
