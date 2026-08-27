@@ -699,7 +699,7 @@
 
       if (analyzing) {
         html += `<div style="background:#1a1408; border:1px solid #6a4a10; border-radius:6px; padding:10px 14px; margin-bottom:16px; font-size:12px; color:#f59e0b;">
-          ⏳ 連絡先の抽出まで完了しました。いま各社の業態と有望度を分析しています（20〜40秒）…
+          ⏳ 連絡先の抽出まで完了しました。いま各社の業態と有望度を分析しています（20〜40秒）…<br><span style="color:#666;">※この時点の「国」は検索した国です。店舗の所在国は分析後に確定します。</span>
         </div>`;
       }
 
@@ -757,7 +757,11 @@
             ${s.evidence ? `<div style="font-size:10px; color:#3a7a4a; margin-top:3px; line-height:1.4;">“${s.evidence}”</div>` : ''}
             <div style="margin-top:4px;"><a href="${s.source_url || '#'}" target="_blank" style="font-size:9px; color:#444;">🔗 情報元</a></div>
           </td>
-          <td style="white-space:nowrap; font-size:11px;">${s.country || ''}</td>
+          <td style="white-space:nowrap; font-size:11px;">${
+            score
+              ? (s.country || '')
+              : `<span style="color:#555;">${s.country || ''}で検索</span>`
+          }</td>
           <td><span class="angle-badge">${s.category || ''}</span></td>
           <td style="color:${scoreColor}; white-space:nowrap; font-size:11px;">${stars}</td>
           <td style="color:${directColor}; font-weight:bold; font-size:14px;">${score ? (s.direct_score || '') : '—'}</td>
