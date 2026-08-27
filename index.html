@@ -793,6 +793,7 @@
       const body = document.getElementById('shopResultsBody');
       card.style.display = 'block';
       body.innerHTML = '';
+      window._shopSummary = '';
       progressLog.innerHTML = '<div class="status">🔍 ① 検索 → 候補の選別 → 上位候補のページを実際に取得しています（30秒前後）…</div>';
 
       let stage1;
@@ -832,29 +833,70 @@
         analyzing: true,
       });
 
-      // 2段目：分析
-      try {
-        const res2 = await fetch('/api/shop-analyze', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ candidates })
-        });
-        const data2 = await res2.json();
-        if (!res2.ok) throw new Error(data2.error || `分析に失敗しました (HTTP ${res2.status})`);
+      // 2段目：分析。1リクエストに全件を入れると60秒上限を超えるので、
+      // 小さなバッチに割って並列に投げ、返ってきたものから表に反映する。
+      const BATCH = 5;
+      const batches = [];
+      for (let i = 0; i < candidates.length; i += BATCH) batches.push(candidates.slice(i, i + BATCH));
 
+      const merged = new Map(candidates.map(c => [c.index, c]));
+      let doneBatches = 0;
+      let failedBatches = 0;
+
+      const paint = (analyzing) => {
+        const list = [...merged.values()].sort((a, b) => {
+          const ac = (a.email || a.instagram || a.whatsapp) ? 1 : 0;
+          const bc = (b.email || b.instagram || b.whatsapp) ? 1 : 0;
+          if (ac !== bc) return bc - ac;
+          return (b.relevance_score || 0) - (a.relevance_score || 0);
+        });
         renderShopResults({
-          results: data2.results || candidates,
-          summary: data2.summary || '',
+          results: list,
+          summary: window._shopSummary || '',
           stats: stage1.stats,
           combos: stage1.combos,
-          analyzing: false,
+          analyzing,
         });
-        if (data2.analyzedCount != null && data2.analyzedCount < (data2.total || 0)) {
-          progressLog.innerHTML = `<div style="color:#f59e0b; font-size:11px;">⚠ ${data2.total - data2.analyzedCount} 件は分析できませんでした（連絡先は取得済みです）</div>`;
+      };
+
+      await Promise.all(batches.map(async (batch) => {
+        try {
+          const r = await fetch('/api/shop-analyze', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ candidates: batch })
+          });
+          const d = await r.json();
+          if (!r.ok) throw new Error(d.error || `HTTP ${r.status}`);
+          (d.results || []).forEach(x => merged.set(x.index, x));
+        } catch (e) {
+          console.error('batch failed:', e);
+          failedBatches++;
+        } finally {
+          doneBatches++;
+          progressLog.innerHTML = `<div class="progress">分析中 ${doneBatches}/${batches.length} バッチ</div>`;
+          paint(doneBatches < batches.length);
+        }
+      }));
+
+      progressLog.innerHTML = failedBatches
+        ? `<div style="color:#f59e0b; font-size:11px;">⚠ ${failedBatches}/${batches.length} バッチの分析に失敗しました（連絡先は取得済みなので、表とCSVはそのまま使えます）</div>`
+        : '';
+
+      // 3段目：総括（軽いので最後に単独で呼ぶ。失敗しても表は残る）
+      try {
+        const r3 = await fetch('/api/shop-summary', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ results: [...merged.values()] })
+        });
+        const d3 = await r3.json();
+        if (r3.ok && d3.summary) {
+          window._shopSummary = d3.summary;
+          paint(false);
         }
       } catch (e) {
-        // 分析に失敗しても、実測した連絡先は使える状態で残す
-        progressLog.innerHTML = `<div style="color:#ff2d6b; font-size:11px;">分析に失敗しました: ${e.message}（連絡先は取得済みなので、上の表とCSVはそのまま使えます）</div>`;
+        console.error('summary failed:', e);
       }
 
       btn.disabled = false; btn.textContent = '🔍 SEARCH SHOPS';
