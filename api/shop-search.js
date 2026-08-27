@@ -18,19 +18,23 @@ const MAX_COMBOS = 12;
 const RESULTS_PER_COMBO = 10;   // 旧: 5
 const SCRAPE_TOP_N = 25;        // 実際に本文を取りに行く件数
 
-// 店舗ではないドメイン（マーケットプレイス・辞典・掲示板・動画）
+// 店舗ではないドメイン（マーケットプレイス・SNS・辞典・掲示板・卸ディレクトリ）。
+// 実測で紛れ込んだもの: instagram.com（店舗ではなく投稿）、salehoo.com（卸業者
+// ディレクトリ＝取引先ではなく名簿）、dpreview.com（カメラの掲示板）。
 const BLOCKED_HOSTS = [
   'ebay.', 'amazon.', 'aliexpress.', 'etsy.com', 'walmart.com', 'mercari.',
-  'reddit.com', 'youtube.com', 'facebook.com', 'pinterest.', 'quora.com',
+  'alibaba.com', 'temu.com', 'wish.com',
+  'reddit.com', 'youtube.com', 'facebook.com', 'instagram.com', 'pinterest.',
+  'quora.com', 'x.com', 'twitter.com', 'tiktok.com', 'threads.net',
   'wikipedia.org', 'fandom.com', 'yelp.com', 'tripadvisor.', 'linkedin.com',
-  'x.com', 'twitter.com', 'tiktok.com', 'craigslist.org', 'gumtree.com',
+  'craigslist.org', 'gumtree.com',
+  // 卸業者ディレクトリ・アフィリエイト名簿（取引先そのものではない）
+  'salehoo.com', 'worldwidebrands.com', 'wholesalecentral.com', 'thomasnet.com',
+  'europages.', 'kompass.com', 'tradeindia.com', 'indiamart.com', 'made-in-china.com',
+  // 掲示板・レビューサイト
+  'dpreview.com', 'trustpilot.com', 'sitejabber.com', 'forums.', 'forum.',
 ];
 
-const SEARCH_EXCLUSIONS = BLOCKED_HOSTS
-  .map(h => `-site:${h.replace(/\.$/, '.com')}`)
-  .filter((v, i, a) => a.indexOf(v) === i)
-  .slice(0, 8)
-  .join(' ');
 
 function hostOf(url) {
   try { return new URL(url).hostname.replace(/^www\./, ''); } catch { return ''; }
@@ -55,7 +59,9 @@ const BUSINESS_CONTEXT = `Kenja Games は日本の中古・ジャンク携帯ゲ
 情報サイト、ブログ、まとめ記事、マーケットプレイスの出品ページは対象外です。`;
 
 async function serperSearch(angle, country, key) {
-  const q = `${angle.query} ${SEARCH_EXCLUSIONS}`;
+  // 除外は取得後に isBlocked で行う。クエリに -site: を並べると Google の
+  // 取得件数そのものが落ちて母数が痩せるため、検索側では絞らない。
+  const q = angle.query;
   const r = await fetch('https://google.serper.dev/search', {
     method: 'POST',
     headers: { 'X-API-KEY': key, 'Content-Type': 'application/json' },
@@ -136,9 +142,21 @@ ${deduped.map((r, i) => `[${i}] ${r.country} / ${r.angle}\nTitle: ${r.title}\nUR
     console.error('triage failed, falling back to search order:', e.message);
   }
 
+  // shop_likelihood 1 は「情報サイト・掲示板・出品ページ」と判定されたもの。
+  // 旧実装は並べ替えるだけだったので、候補が少ないと下位がそのまま表に出ていた
+  // （カメラの掲示板や卸ディレクトリが混ざっていた）。ここで落とす。
+  const MIN_SHOP_LIKELIHOOD = 2;
+  const dropped = ranked.filter(c => deduped[c.index] && c.shop_likelihood < MIN_SHOP_LIKELIHOOD).length;
   ranked = ranked
-    .filter(c => deduped[c.index])
+    .filter(c => deduped[c.index] && c.shop_likelihood >= MIN_SHOP_LIKELIHOOD)
     .sort((a, b) => b.shop_likelihood - a.shop_likelihood);
+
+  if (ranked.length === 0) {
+    return res.status(200).json({
+      candidates: [], combos: combos.length, total: 0,
+      stats: { rawResults: rawResults.length, uniqueDomains: deduped.length, notShop: dropped, scraped: 0, withContact: 0 },
+    });
+  }
 
   const toScrape = ranked.slice(0, SCRAPE_TOP_N);
 
@@ -179,6 +197,7 @@ ${deduped.map((r, i) => `[${i}] ${r.country} / ${r.angle}\nTitle: ${r.title}\nUR
     stats: {
       rawResults: rawResults.length,
       uniqueDomains: deduped.length,
+      notShop: dropped,
       scraped: candidates.filter(c => c.verified).length,
       withContact: candidates.filter(c => c.email || c.instagram || c.whatsapp).length,
     },

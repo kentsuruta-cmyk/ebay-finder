@@ -712,7 +712,8 @@
       // 取得状況（何件を実際に開いて、何件から連絡先が取れたか）
       if (stats) {
         html += `<div style="font-size:11px; color:#666; margin-bottom:12px;">
-          検索ヒット ${stats.rawResults} 件 → 重複除去後 ${stats.uniqueDomains} ドメイン →
+          検索ヒット ${stats.rawResults} 件 → 重複除去後 ${stats.uniqueDomains} ドメイン
+          ${stats.notShop ? ` → <span style="color:#f59e0b;">店舗でない ${stats.notShop} 件を除外</span>` : ''} →
           <span style="color:#00ff88;">${stats.scraped} 件のページを実際に取得</span> →
           <span style="color:#00ff88;">${stats.withContact} 件から連絡先を実測</span>
         </div>`;
