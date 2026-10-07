@@ -99,6 +99,13 @@ module.exports = async (req, res) => {
       models: models.slice(0, 40),
       // 型番が読み取れなかった出品も見られるよう、先頭をそのまま返す
       sellerItems: sellerItems.slice(0, 60).map((i) => ({ title: i.title.slice(0, 100), price: i.price, shipping: i.shipping, condition: i.condition, url: i.url })),
+      // ?raw=1 … 両方の出品を全部返す（細かく突き合わせたいとき用）
+      ...(req.query.raw === '1'
+        ? {
+            rawSeller: sellerItems.map((i) => ({ title: i.title, price: i.price, shipping: i.shipping, condition: i.condition, tokens: i.tokens })),
+            rawJp: jpItems.map((i) => ({ title: i.title, price: i.price, shipping: i.shipping, condition: i.condition, tokens: i.tokens, seller: i.seller })),
+          }
+        : {}),
     });
   } catch (err) {
     return res.status(502).json({ error: err.message });
