@@ -300,6 +300,16 @@
       <div class="card">
         <h2>▸ SHOP SEARCH CONFIG</h2>
         <div class="form-group" style="margin-bottom:20px;">
+          <label>卸したい商品（何を、どんな相手に卸したいか。評価の基準になります）</label>
+          <select id="shopBusinessPreset" onchange="applyBusinessPreset()" style="margin-bottom:6px;">
+            <option value="game">携帯ゲーム機</option>
+            <option value="pen">万年筆</option>
+            <option value="custom">自分で書く</option>
+          </select>
+          <textarea id="shopBusiness" rows="3" oninput="saveBusiness()" style="background:#0a0a0a; border:1px solid #333; color:#fff; padding:10px; border-radius:4px; font-family:'Courier New',monospace; font-size:12px; line-height:1.6;"></textarea>
+          <div class="hint">ここを書き換えると、検索の切り口・候補の選別・有望度の評価がその商品向けに変わります。内容はこのブラウザに保存されます。</div>
+        </div>
+        <div class="form-group" style="margin-bottom:20px;">
           <label>SEARCH KEYWORD</label>
           <div style="display:flex; gap:8px;">
             <input type="text" id="shopKeyword" placeholder="例: retro handheld console" value="retro handheld console" style="flex:1; background:#0a0a0a; border:1px solid #333; color:#fff; padding:10px; border-radius:4px; font-family:'Courier New',monospace; font-size:13px;">
@@ -502,6 +512,34 @@
       return out;
     }
 
+
+    // ───────── Shop Finder: 卸したい商品 ─────────
+    const BUSINESS_PRESETS = {
+      game: { text: '日本の中古・ジャンク携帯ゲーム機（Game Boy / GBC / GBA / GBA SP / DS / 3DS / PSP など）。リペア店や、整備・改造して売るレトロゲーム店が主な相手。', keyword: 'retro handheld console' },
+      pen: { text: '日本製の中古万年筆（パイロット、セーラー、プラチナ、ナミキなど）。状態の良いものを検品して出す。実店舗があり、オンラインでも中古・ヴィンテージの万年筆を売っている筆記具専門店が主な相手。', keyword: 'vintage fountain pen shop' },
+    };
+    function getBusiness() { return document.getElementById('shopBusiness').value.trim(); }
+    function saveBusiness() {
+      try {
+        localStorage.setItem('shopBusiness', document.getElementById('shopBusiness').value);
+        localStorage.setItem('shopBusinessPreset', document.getElementById('shopBusinessPreset').value);
+      } catch (e) {}
+    }
+    function applyBusinessPreset() {
+      const key = document.getElementById('shopBusinessPreset').value;
+      const preset = BUSINESS_PRESETS[key];
+      if (preset) {
+        document.getElementById('shopBusiness').value = preset.text;
+        document.getElementById('shopKeyword').value = preset.keyword;
+      }
+      saveBusiness();
+    }
+    (function initBusiness() {
+      let text = null, preset = null;
+      try { text = localStorage.getItem('shopBusiness'); preset = localStorage.getItem('shopBusinessPreset'); } catch (e) {}
+      if (preset && document.querySelector(`#shopBusinessPreset option[value="${preset}"]`)) document.getElementById('shopBusinessPreset').value = preset;
+      document.getElementById('shopBusiness').value = text || BUSINESS_PRESETS.game.text;
+    })();
 
     // ───────── 商品ふるい分け ─────────
     const SC_DEFAULT = [
@@ -985,7 +1023,7 @@
         const res = await fetch('/api/suggest', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ keyword })
+          body: JSON.stringify({ keyword, business: getBusiness() })
         });
         const data = await res.json();
         if (!data.angles) throw new Error(data.error || '不明なエラー');
@@ -1137,7 +1175,7 @@
         const res = await fetch('/api/shop-search', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ angles, countries })
+          body: JSON.stringify({ angles, countries, business: getBusiness() })
         });
         stage1 = await res.json();
         if (!res.ok) throw new Error(stage1.error || `検索に失敗しました (HTTP ${res.status})`);
@@ -1200,7 +1238,7 @@
           const r = await fetch('/api/shop-analyze', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ candidates: batch })
+            body: JSON.stringify({ candidates: batch, business: getBusiness() })
           });
           const d = await r.json();
           if (!r.ok) throw new Error(d.error || `HTTP ${r.status}`);
@@ -1224,7 +1262,7 @@
         const r3 = await fetch('/api/shop-summary', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ results: [...merged.values()] })
+          body: JSON.stringify({ results: [...merged.values()], business: getBusiness() })
         });
         const d3 = await r3.json();
         if (r3.ok && d3.summary) {

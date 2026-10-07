@@ -8,13 +8,10 @@
 // ここでAIに作らせることは一切しない（スキーマにも入れていない）。
 const { z } = require('zod');
 const { parseJson } = require('../lib/claude');
+const { businessContext } = require('../lib/business');
 
 const MAX_BATCH = 8;
 const EXCERPT_CHARS = 1400;
-
-const BUSINESS_CONTEXT = `Kenja Games は日本の中古・ジャンク携帯ゲーム機（Game Boy / GBC / GBA / GBA SP / DS / 3DS / PSP など）の卸売業者です。
-海外の「まとまった数を仕入れてくれる」小売店・リペア店・卸業者を探しています。
-情報サイト、ブログ、まとめ記事、マーケットプレイスの出品ページは対象外です。`;
 
 const ShopsSchema = z.object({
   shops: z.array(
@@ -41,7 +38,7 @@ const RULES = `重要なルール:
 - company_name は改行を含めず、店名だけを短く書いてください。
 - buys_used_stock は「中古在庫を仕入れている形跡があるか」です（buy / sell / trade-in / we buy などの記述）。
 - 連絡先（メール・SNS）は別途こちらで抽出済みなので、あなたは出力しないでください。
-- relevance_score は1〜5。Kenja Games の卸先としての有望度です。
+- relevance_score は1〜5。上に書いた「卸したい商品」の卸先としての有望度です。その商品を実際に扱っている（または扱いそうな）店ほど高くしてください。
 - 与えられた候補を漏れなく返してください。index は入力の番号をそのまま使ってください。`;
 
 function describe(c) {
@@ -61,7 +58,7 @@ module.exports = async (req, res) => {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { candidates } = req.body || {};
+  const { candidates, business } = req.body || {};
   if (!Array.isArray(candidates) || candidates.length === 0) {
     return res.status(400).json({ error: 'candidates が空です' });
   }
@@ -79,7 +76,7 @@ module.exports = async (req, res) => {
       schema: ShopsSchema,
       effort: 'medium',
       maxTokens: 10000,
-      system: BUSINESS_CONTEXT,
+      system: businessContext(business),
       prompt: `以下は候補サイトの検索結果と、実際に取得したページ本文です。各候補について日本語で評価してください。
 
 ${RULES}

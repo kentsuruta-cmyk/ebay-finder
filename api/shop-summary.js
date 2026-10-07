@@ -2,6 +2,7 @@
 // 分析本体（shop-analyze）と分けてあるのは、総括を待つあいだ表が出ないのを避けるため。
 const { z } = require('zod');
 const { parseJson } = require('../lib/claude');
+const { businessContext } = require('../lib/business');
 
 const SummarySchema = z.object({ summary: z.string() });
 
@@ -12,7 +13,7 @@ module.exports = async (req, res) => {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { results } = req.body || {};
+  const { results, business } = req.body || {};
   if (!Array.isArray(results) || results.length === 0) {
     return res.status(400).json({ error: 'results が空です' });
   }
@@ -33,7 +34,7 @@ module.exports = async (req, res) => {
       schema: SummarySchema,
       effort: 'low',
       maxTokens: 2000,
-      system: `Kenja Games は日本の中古・ジャンク携帯ゲーム機の卸売業者で、海外の仕入先候補を探しています。`,
+      system: businessContext(business),
       prompt: `以下は調査した海外の潜在取引先です。日本語で250字程度の総括を書いてください。
 国別の特徴、有望な相手の傾向、連絡手段の取りやすさに触れてください。リストに無いことは書かないでください。
 

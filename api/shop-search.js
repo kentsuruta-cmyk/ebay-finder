@@ -13,6 +13,7 @@
 const { z } = require('zod');
 const { parseJson } = require('../lib/claude');
 const { scrapeMany } = require('../lib/scrape');
+const { businessContext } = require('../lib/business');
 
 const MAX_COMBOS = 12;
 const RESULTS_PER_COMBO = 10;   // 旧: 5
@@ -54,10 +55,6 @@ const TriageSchema = z.object({
 });
 
 
-const BUSINESS_CONTEXT = `Kenja Games は日本の中古・ジャンク携帯ゲーム機（Game Boy / GBC / GBA / GBA SP / DS / 3DS / PSP など）の卸売業者です。
-海外の「まとまった数を仕入れてくれる」小売店・リペア店・卸業者を探しています。
-情報サイト、ブログ、まとめ記事、マーケットプレイスの出品ページは対象外です。`;
-
 async function serperSearch(angle, country, key) {
   // 除外は取得後に isBlocked で行う。クエリに -site: を並べると Google の
   // 取得件数そのものが落ちて母数が痩せるため、検索側では絞らない。
@@ -86,7 +83,7 @@ module.exports = async (req, res) => {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { angles, countries } = req.body || {};
+  const { angles, countries, business } = req.body || {};
   if (!angles?.length || !countries?.length) {
     return res.status(400).json({ error: 'angles と countries は必須です' });
   }
@@ -130,7 +127,7 @@ module.exports = async (req, res) => {
       schema: TriageSchema,
       effort: 'low',
       maxTokens: 8000,
-      system: BUSINESS_CONTEXT,
+      system: businessContext(business),
       prompt: `以下はGoogle検索の結果です。それぞれについて「実在する小売店・リペア店・卸業者の自社サイト」である可能性を1〜5で評価してください。
 情報サイト・ブログ・まとめ記事・マーケットプレイスの出品ページは1にしてください。
 全件を漏れなく返してください。
