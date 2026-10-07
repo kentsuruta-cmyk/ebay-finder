@@ -99,6 +99,10 @@ module.exports = async (req, res) => {
     const overseas = items.filter((i) => i.country && i.country !== 'JP');
 
     const jpMedian = median(jpItems.map((i) => i.price));
+    // 日本セラーの安値帯（下位25%）。出品中の値段は売れ残りの高値に引っ張られるので、
+    // 「実際に売れていそうな値段」の目安としては中央値よりこちらを使う。
+    const jpSorted = jpItems.map((i) => i.price).sort((a, b) => a - b);
+    const jpP25 = jpSorted.length ? jpSorted[Math.floor((jpSorted.length - 1) * 0.25)] : null;
     const overseasMedian = median(overseas.map((i) => i.price));
 
     // ── 同じ型番どうしの価格差 ──
@@ -170,6 +174,7 @@ module.exports = async (req, res) => {
       scannedJp: jpItems.length,
       scannedOverseas: overseas.length,
       jpMedian: round(jpMedian),
+      jpP25: round(jpP25),
       overseasMedian: round(overseasMedian),
       overallRatio: jpMedian && overseasMedian ? round(overseasMedian / jpMedian) : null,
       sameModelRatio,

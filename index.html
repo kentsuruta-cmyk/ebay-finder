@@ -237,15 +237,15 @@
         <h2>▸ 商品ふるい分け</h2>
         <p class="hint" style="font-size:11px; margin-bottom:14px;">
           「日本のセラーより高く・数多く売っている海外セラーが eBay の中にいるか」を、商品ごとにまとめて調べます。
-          1行目のゲームボーイは、すでに卸が成り立っている基準です。これと数字を見比べてください。<br>
+          先頭2行のゲームボーイとGBA SPは、すでに卸が成り立っている基準です。これと数字を見比べてください。<br>
           ※見ているのは eBay.com（米国サイト）に<b>いま出品されているもの</b>です。売れた件数は取れません。
         </p>
         <div class="form-group">
           <label>候補リスト（1行に1つ。「名前 | eBayの検索語」。自由に足したり消したりできます）</label>
           <textarea id="scCandidates" rows="10" style="background:#0a0a0a; border:1px solid #333; color:#fff; padding:10px; border-radius:4px; font-family:'Courier New',monospace; font-size:12px; line-height:1.6;"></textarea>
-          <div class="hint"><a href="#" onclick="resetCandidates(); return false;" style="color:#00ff88;">初期リスト（30個＋基準）に戻す</a></div>
+          <div class="hint"><a href="#" onclick="resetCandidates(); return false;" style="color:#00ff88;">初期リスト（30個＋基準2つ）に戻す</a></div>
         </div>
-        <div class="form-grid" style="grid-template-columns: repeat(7, 1fr);">
+        <div class="form-grid" style="grid-template-columns: repeat(5, 1fr);">
           <div class="form-group"><label>状態</label>
             <select id="scCondition">
               <option value="3000" selected>中古</option>
@@ -256,13 +256,15 @@
           <div class="form-group"><label>為替（円/ドル）</label><input type="number" id="scFx" value="150" oninput="renderScreen()"></div>
           <div class="form-group"><label>eBay手数料 %</label><input type="number" id="scFee" value="20" oninput="renderScreen()"></div>
           <div class="form-group"><label>関税 %</label><input type="number" id="scDuty" value="12" oninput="renderScreen()"></div>
-          <div class="form-group"><label>国際送料 円/個</label><input type="number" id="scShip" value="3500" oninput="renderScreen()"></div>
-          <div class="form-group"><label>必要な粗利 %</label><input type="number" id="scMargin" value="15" oninput="renderScreen()"></div>
+          <div class="form-group"><label>直販の国際送料 円/個</label><input type="number" id="scShip" value="3500" oninput="renderScreen()"></div>
+          <div class="form-group"><label>卸の国際送料 円/個</label><input type="number" id="scShipB2b" value="500" oninput="renderScreen()"></div>
+          <div class="form-group"><label>自分の粗利 %</label><input type="number" id="scMargin" value="15" oninput="renderScreen()"></div>
+          <div class="form-group"><label>買い手の粗利 %</label><input type="number" id="scBuyerMargin" value="15" oninput="renderScreen()"></div>
           <div class="form-group"><label>最低価格 $</label><input type="number" id="scMinPrice" value="50"></div>
         </div>
         <div class="hint">
           手数料・関税・送料・粗利は、押し直さなくても表にすぐ反映されます。状態と最低価格は調べ直しが必要です（最低価格未満の出品は付属品・部品とみなして外します）。<br>
-          為替の150円は仮の値です。いまのレートに直してください。国際送料は1個ずつ送る場合の額で、まとめて送る卸では下がります。
+          為替の150円と、卸の国際送料500円/個（まとめて送る前提）は仮の値です。実際の数字に直してください。
         </div>
         <button class="search-btn" id="scBtn" onclick="startScreen()">▶ 全部まとめて調べる</button>
       </div>
@@ -277,11 +279,13 @@
         </div>
         <div id="scTable" style="overflow-x:auto;"></div>
         <div class="hint" style="margin-top:14px; font-size:11px; line-height:1.8;">
-          <b>卸先候補</b>＝日本以外から、その商品を3点以上・評価300以上で売っているセラーのうち、こちらの卸値で仕入れても「必要な粗利」が残る売値を付けているセラーの数。<br>
-          　卸値＝日本セラーの売値の中央値 ×（1 − eBay手数料）。買い手の原価＝卸値 ×（1 + 関税）＋ 国際送料。買い手の粗利＝（買い手の売値 ×（1 − eBay手数料）− 原価）÷ 売値。<br>
-          <b>同型番の価格差</b>＝日本発送と海外発送の両方に3点以上ある型番だけで比べた「海外の売値 ÷ 日本の売値」。型番が3つ未満しか比べられないときは、全体の中央値どうしの比（＊付き）を出します。<br>
+          卸値は国内の仕入れ値から決まるので、海外セラーの売値から逆算しています。<br>
+          <b>卸値の上限</b>＝（海外セラーの売値 ×（1 − eBay手数料 − 買い手の粗利）− 卸の国際送料）÷（1 + 関税）。その相手が払える卸値の目安です。<br>
+          <b>仕入れ上限（卸）</b>＝卸値の上限 ×（1 − 自分の粗利）。国内でこの値段以下で仕入れられれば卸が成り立ちます。<br>
+          <b>仕入れ上限（直販）</b>＝自分で eBay で売る場合の上限。日本セラーの安値帯（出品中の下位25%）×（1 − 手数料 − 関税 − 自分の粗利）。<br>
+          <b>卸先候補</b>＝日本以外から、その商品を3点以上・評価300以上で売っているセラーのうち、仕入れ上限（卸）が仕入れ上限（直販）以上になるセラーの数。直販するより卸したほうが有利な相手です。「卸先の売値」以降の3列は、その候補セラーの中央値です。<br>
+          ※どちらの上限も、国内で実際にいくらで仕入れられるかとは別です。ヤフオク・メルカリの相場と見比べてください。<br>
           <b>上位15型番の割合</b>＝タイトルから型番が読み取れた出品のうち、上位15型番で占める割合。高いほど少ない型番で回せます。型番の読み取りは機械的なので目安です。<br>
-          <b>仕入れ上限</b>＝自分で eBay で売る場合に、手数料・関税・必要な粗利を引いて残る金額（国内送料込みの仕入れ値の上限）。
         </div>
       </div>
     </div>
@@ -498,6 +502,7 @@
     // ───────── 商品ふるい分け ─────────
     const SC_DEFAULT = [
       'ゲームボーイ（基準） | Game Boy console',
+      'GBA SP（基準・実際に卸している） | Game Boy Advance SP console',
       'コンパクトフィルムカメラ | point and shoot film camera',
       'オールドレンズ | vintage camera lens',
       '古いコンパクトデジカメ | CCD digital camera',
@@ -547,15 +552,29 @@
 
     function scParams() {
       const n = id => parseFloat(document.getElementById(id).value) || 0;
-      return { fx: n('scFx') || 150, fee: n('scFee') / 100, duty: n('scDuty') / 100, shipUsd: n('scShip') / (n('scFx') || 150), margin: n('scMargin') / 100 };
+      const fx = n('scFx') || 150;
+      return { fx, fee: n('scFee') / 100, duty: n('scDuty') / 100, shipUsd: n('scShip') / fx, shipB2bUsd: n('scShipB2b') / fx, margin: n('scMargin') / 100, buyerMargin: n('scBuyerMargin') / 100 };
     }
 
-    // こちらの卸値で仕入れた買い手に、売値 price で売ったとき残る粗利率
-    function buyerMargin(jpMedian, price, p) {
-      if (!jpMedian || !price) return null;
-      const wholesale = jpMedian * (1 - p.fee);
-      const landed = wholesale * (1 + p.duty) + p.shipUsd;
-      return (price * (1 - p.fee) - landed) / price;
+    // ── 卸の計算 ──
+    // 卸値は「日本のeBay価格から手数料を引いた額」ではなく、国内の仕入れ値に自分の粗利を乗せて決まる。
+    // そこで逆向きに計算する。海外セラーが price で売っているとき:
+    //   卸値の上限   ＝（売値 ×（1 − eBay手数料 − 買い手の粗利）− 卸の送料）÷（1 + 関税）
+    //   国内仕入れ上限＝ 卸値の上限 ×（1 − 自分の粗利）
+    // 実例での確かめ: 売値$150・手数料20%・粗利15%ずつ・関税12%・送料500円 → 卸値の上限 約$84、仕入れ上限 約10,700円
+    // （実際の取引は卸値$83・国内仕入れ9,500円）。
+    function wholesaleMax(price, p) {
+      if (!price) return null;
+      return (price * (1 - p.fee - p.buyerMargin) - p.shipB2bUsd) / (1 + p.duty);
+    }
+    function costMaxB2b(price, p) {
+      const w = wholesaleMax(price, p);
+      return w == null ? null : w * (1 - p.margin) * p.fx;
+    }
+    // 自分で eBay で直接売る場合の国内仕入れ上限（送料は買い手負担として売値に含めない）
+    function costMaxDirect(price, p) {
+      if (!price) return null;
+      return price * (1 - p.fee - p.duty - p.margin) * p.fx;
     }
 
     // 1行ぶんの、並べ替えと表示に使う数字
@@ -563,24 +582,30 @@
       const d = row.data;
       if (!d) return {};
       const p = scParams();
-      const sellers = (d.sellers || []).map(s => ({ ...s, margin: buyerMargin(d.jpMedian, s.medianPrice, p) }));
-      const ratio = d.sameModelRatio != null ? d.sameModelRatio : d.overallRatio;
+      // 直販の基準には、日本セラーの安値帯（下位25%）を使う。出品中の中央値は売れ残りの高値に寄るため。
+      const directCost = costMaxDirect(d.jpP25 != null ? d.jpP25 : d.jpMedian, p);
+      const sellers = (d.sellers || []).map(s => ({ ...s, wholesale: wholesaleMax(s.medianPrice, p), cost: costMaxB2b(s.medianPrice, p) }));
+      // 卸先候補＝そのセラーに卸すほうが、自分で直販するより高い仕入れ値まで出せる相手
+      const buyers = directCost == null ? [] : sellers.filter(s => s.cost != null && s.cost >= directCost);
+      const med = arr => { const v = arr.filter(x => x != null).sort((a, b) => a - b); return v.length ? v[Math.floor(v.length / 2)] : null; };
       return {
         listings: d.totalListings,
         jpShare: d.jpShare,
-        jpMedian: d.jpMedian,
-        ratio,
-        ratioIsOverall: d.sameModelRatio == null,
-        buyers: d.jpMedian ? sellers.filter(s => s.margin != null && s.margin >= p.margin).length : null,
+        jpP25: d.jpP25,
+        buyers: directCost == null ? null : buyers.length,
         sellerCount: d.sellerCount,
+        buyerPrice: med(buyers.map(s => s.medianPrice)),
+        buyerWholesale: med(buyers.map(s => s.wholesale)),
+        buyerCost: med(buyers.map(s => s.cost)),
+        directCost,
         top15: d.top15Share,
-        maxCostYen: d.jpMedian ? d.jpMedian * (1 - p.fee - p.duty - p.margin) * p.fx : null,
         sellers,
       };
     }
 
     const scPct = v => (v == null ? '—' : Math.round(v * 100) + '%');
     const scUsd = v => (v == null ? '—' : '$' + Math.round(v).toLocaleString());
+    const scYen = v => (v == null || v <= 0 ? '—' : '¥' + (Math.round(v / 100) * 100).toLocaleString());
     const scEsc = t => String(t == null ? '' : t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
     function scSortBy(key) {
@@ -601,19 +626,19 @@
           <td>${(s.feedback || 0).toLocaleString()}</td>
           <td>${s.hits}</td>
           <td>${scUsd(s.medianPrice)}</td>
-          <td>${s.ratio == null ? '—' : s.ratio.toFixed(2) + '倍'}</td>
-          <td style="color:${s.margin != null && s.margin >= p.margin ? '#00ff88' : '#888'};">${scPct(s.margin)}</td>
+          <td>${scUsd(s.wholesale)}</td>
+          <td style="color:${s.cost != null && m.directCost != null && s.cost >= m.directCost ? '#00ff88' : '#888'};">${scYen(s.cost)}</td>
           <td class="left" style="color:#666; font-size:11px;">${scEsc((s.titles || [])[0] || '')}</td>
         </tr>`).join('');
       const pairRows = (d.sameModelPairs || []).map(x =>
         `<tr><td class="left">${scEsc(x.token)}</td><td>${scUsd(x.jpMedian)}（${x.jpCount}点）</td><td>${scUsd(x.overseasMedian)}（${x.overseasCount}点）</td><td>${x.ratio.toFixed(2)}倍</td></tr>`).join('');
       const models = (d.topModels || []).map(x => `${scEsc(x.token)}（${x.count}）`).join('、');
-      return `<tr><td colspan="9" class="left" style="background:#0d0d0d; padding:16px 20px;">
+      return `<tr><td colspan="10" class="left" style="background:#0d0d0d; padding:16px 20px;">
         <div style="color:#888; font-size:11px; margin-bottom:8px;">
           検索語「${scEsc(d.keyword)}」／読んだ出品 ${d.scanned}点（日本発送 ${d.scannedJp}・海外発送 ${d.scannedOverseas}）／海外セラーの売値の中央値 ${scUsd(d.overseasMedian)}
         </div>
         <div style="color:#00ff88; font-size:11px; letter-spacing:1px; margin:10px 0 6px;">海外セラー（出品数の多い順・上位15）</div>
-        ${sellerRows ? `<table class="seller-table"><thead><tr><th class="left">セラー</th><th>国</th><th>評価数</th><th>出品</th><th>売値の中央値</th><th>日本比</th><th>買い手の粗利</th><th class="left">出品の例</th></tr></thead><tbody>${sellerRows}</tbody></table>` : '<div style="color:#666; font-size:12px;">条件に合う海外セラーはいませんでした。</div>'}
+        ${sellerRows ? `<table class="seller-table"><thead><tr><th class="left">セラー</th><th>国</th><th>評価数</th><th>出品</th><th>売値の中央値</th><th>卸値の上限</th><th>国内仕入れ上限</th><th class="left">出品の例</th></tr></thead><tbody>${sellerRows}</tbody></table>` : '<div style="color:#666; font-size:12px;">条件に合う海外セラーはいませんでした。</div>'}
         <div style="color:#00ff88; font-size:11px; letter-spacing:1px; margin:16px 0 6px;">同じ型番での価格差</div>
         ${pairRows ? `<table class="seller-table" style="width:auto;"><thead><tr><th class="left">型番</th><th>日本発送</th><th>海外発送</th><th>海外÷日本</th></tr></thead><tbody>${pairRows}</tbody></table>` : '<div style="color:#666; font-size:12px;">日本・海外の両方に3点以上ある型番がありませんでした。</div>'}
         <div style="color:#00ff88; font-size:11px; letter-spacing:1px; margin:16px 0 6px;">よく出てくる型番（上位15）</div>
@@ -637,25 +662,25 @@
       const th = (key, label, cls) => `<th class="${cls || ''}" style="cursor:pointer;" onclick="scSortBy('${key}')">${label}${_scSort.key === key ? (_scSort.dir < 0 ? ' ▼' : ' ▲') : ''}</th>`;
       const p = scParams();
       let html = `<table class="seller-table"><thead><tr>
-        ${th('name', '商品', 'left')}${th('buyers', '卸先候補')}${th('ratio', '同型番の価格差')}${th('jpShare', '日本発送の割合')}
-        ${th('listings', '出品数')}${th('jpMedian', '日本セラーの売値')}${th('top15', '上位15型番の割合')}${th('maxCostYen', '仕入れ上限')}<th></th>
+        ${th('name', '商品', 'left')}${th('buyers', '卸先候補')}${th('buyerPrice', '卸先の売値')}${th('buyerWholesale', '卸値の上限')}
+        ${th('buyerCost', '仕入れ上限（卸）')}${th('directCost', '仕入れ上限（直販）')}${th('jpShare', '日本発送の割合')}${th('listings', '出品数')}${th('top15', '上位15型番の割合')}<th></th>
       </tr></thead><tbody>`;
       for (const { row, i, m } of rows) {
         if (row.state !== 'done') {
           const msg = row.state === 'error' ? `<span style="color:#ff6b6b;">${scEsc(row.error)}</span>` : row.state === 'run' ? '調べています...' : '待機中';
-          html += `<tr><td class="left">${scEsc(row.name)}</td><td colspan="8" class="left" style="color:#666;">${msg}</td></tr>`;
+          html += `<tr><td class="left">${scEsc(row.name)}</td><td colspan="9" class="left" style="color:#666;">${msg}</td></tr>`;
           continue;
         }
-        const typical = buyerMargin(m.jpMedian, m.jpMedian * (m.ratio || 0), p);
         html += `<tr style="cursor:pointer;" onclick="scToggle(${i})" class="${m.buyers >= 5 ? 'priority-row' : ''}">
           <td class="left"><b style="color:#fff;">${scEsc(row.name)}</b><div style="color:#555; font-size:10px;">${scEsc(row.keyword)}</div></td>
           <td><b style="color:${m.buyers > 0 ? '#00ff88' : '#666'}; font-size:14px;">${m.buyers == null ? '—' : m.buyers}</b><span style="color:#666;"> / ${m.sellerCount}</span></td>
-          <td>${m.ratio == null ? '—' : m.ratio.toFixed(2) + '倍' + (m.ratioIsOverall ? '＊' : '')}<div style="color:#555; font-size:10px;">買い手の粗利 ${scPct(typical)}</div></td>
+          <td>${scUsd(m.buyerPrice)}</td>
+          <td>${scUsd(m.buyerWholesale)}</td>
+          <td style="color:#00ff88;">${scYen(m.buyerCost)}</td>
+          <td>${scYen(m.directCost)}<div style="color:#555; font-size:10px;">日本の安値帯 ${scUsd(m.jpP25)}</div></td>
           <td>${scPct(m.jpShare)}</td>
           <td>${m.listings == null ? '—' : m.listings.toLocaleString()}</td>
-          <td>${scUsd(m.jpMedian)}</td>
           <td>${scPct(m.top15)}</td>
-          <td>${m.maxCostYen == null || m.maxCostYen <= 0 ? '—' : '¥' + (Math.round(m.maxCostYen / 100) * 100).toLocaleString()}</td>
           <td style="color:#555;">${_scOpen.has(i) ? '▲' : '▼'}</td>
         </tr>`;
         if (_scOpen.has(i)) html += scDetail(row, m);
