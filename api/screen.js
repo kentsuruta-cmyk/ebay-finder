@@ -185,3 +185,6 @@ module.exports = async (req, res) => {
     return res.status(502).json({ error: err.message, keyword });
   }
 };
+
+// 型番の読み取りは seller-compare.js でも使う
+module.exports.modelTokens = modelTokens;
