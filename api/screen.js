@@ -199,7 +199,8 @@ module.exports = async (req, res) => {
       reworkShare: overseas.length ? round(overseas.filter((i) => i.rework).length / overseas.length, 3) : null,
       totalListings: all.total,          // eBay側の総ヒット数（条件に合う出品の実数）
       jpListings: jp.total,              // うち日本発送
-      jpShare: all.total ? round(jp.total / all.total, 3) : null,
+      // eBayの総数は概算で、日本発送の数が全体を上回って返ることがあるので100%で頭打ちにする
+      jpShare: all.total ? Math.min(1, round(jp.total / all.total, 3)) : null,
       scanned: items.length,
       scannedJp: jpItems.length,
       scannedOverseas: overseas.length,

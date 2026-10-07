@@ -283,7 +283,7 @@
           <b>卸値の上限</b>＝（海外セラーの売値 ×（1 − eBay手数料 − 買い手の粗利）− 卸の国際送料）÷（1 + 関税）。その相手が払える卸値の目安です。<br>
           <b>仕入れ上限（卸）</b>＝卸値の上限 ×（1 − 自分の粗利）。国内でこの値段以下で仕入れられれば卸が成り立ちます。<br>
           <b>仕入れ上限（直販）</b>＝自分で eBay で売る場合の上限。日本セラーの安値帯（出品中の下位25%）×（1 − 手数料 − 関税 − 自分の粗利）。<br>
-          <b>整備・改造の卸先</b>＝卸先候補のうち、状態が「整備済み（Refurbished）」の出品や、タイトルに整備・改造・外装交換を示す語（refurbished / restored / custom / modded / new shell / IPS / serviced など）がある出品を2点以上（または出品の3割以上）出しているセラーの数。難あり品を仕入れて直して売る相手です。<br>
+          <b>うち整備・改造</b>＝卸先候補のうち、状態が「整備済み（Refurbished）」の出品や、タイトルに整備・改造・外装交換を示す語（refurbished / restored / custom / modded / new shell / IPS / serviced など）がある出品を2点以上（または出品の3割以上）出しているセラーの数。難あり品を仕入れて直して売る相手です。<br>
           <b>日本のジャンク出品</b>＝日本発送で状態が「部品取り・動作しない」の出品数と、その売値の中央値。素材が出回っているかの目安です。<br>
           <b>卸先候補</b>＝日本以外から、その商品を3点以上・評価300以上で売っているセラーのうち、仕入れ上限（卸）が仕入れ上限（直販）以上になるセラーの数。直販するより卸したほうが有利な相手です。「卸先の売値」以降の3列は、その候補セラーの中央値です。<br>
           ※どちらの上限も、国内で実際にいくらで仕入れられるかとは別です。ヤフオク・メルカリの相場と見比べてください。<br>
@@ -539,7 +539,7 @@
     ].join('\n');
 
     let _sc = [];               // { name, keyword, state: 'wait'|'run'|'done'|'error', data, error }
-    let _scSort = { key: 'reworkBuyers', dir: -1 };
+    let _scSort = { key: 'buyers', dir: -1 };
     let _scOpen = new Set();
 
     function resetCandidates() {
@@ -671,7 +671,7 @@
       const th = (key, label, cls) => `<th class="${cls || ''}" style="cursor:pointer;" onclick="scSortBy('${key}')">${label}${_scSort.key === key ? (_scSort.dir < 0 ? ' ▼' : ' ▲') : ''}</th>`;
       const p = scParams();
       let html = `<table class="seller-table"><thead><tr>
-        ${th('name', '商品', 'left')}${th('reworkBuyers', '整備・改造の卸先')}${th('buyers', '卸先候補')}${th('buyerPrice', '卸先の売値')}${th('buyerWholesale', '卸値の上限')}
+        ${th('name', '商品', 'left')}${th('buyers', '卸先候補')}${th('reworkBuyers', 'うち整備・改造')}${th('buyerPrice', '卸先の売値')}${th('buyerWholesale', '卸値の上限')}
         ${th('buyerCost', '仕入れ上限（卸）')}${th('directCost', '仕入れ上限（直販）')}${th('junkListings', '日本のジャンク出品')}${th('jpShare', '日本発送の割合')}${th('listings', '出品数')}${th('top15', '上位15型番の割合')}<th></th>
       </tr></thead><tbody>`;
       for (const { row, i, m } of rows) {
@@ -680,10 +680,10 @@
           html += `<tr><td class="left">${scEsc(row.name)}</td><td colspan="11" class="left" style="color:#666;">${msg}</td></tr>`;
           continue;
         }
-        html += `<tr style="cursor:pointer;" onclick="scToggle(${i})" class="${m.reworkBuyers >= 3 ? 'priority-row' : ''}">
+        html += `<tr style="cursor:pointer;" onclick="scToggle(${i})" class="${m.buyers >= 10 ? 'priority-row' : ''}">
           <td class="left"><b style="color:#fff;">${scEsc(row.name)}</b><div style="color:#555; font-size:10px;">${scEsc(row.keyword)}</div></td>
-          <td><b style="color:${m.reworkBuyers > 0 ? '#00ff88' : '#666'}; font-size:14px;">${m.reworkBuyers == null ? '—' : m.reworkBuyers}</b></td>
-          <td><b style="color:${m.buyers > 0 ? '#ccc' : '#666'};">${m.buyers == null ? '—' : m.buyers}</b><span style="color:#666;"> / ${m.sellerCount}</span></td>
+          <td><b style="color:${m.buyers > 0 ? '#00ff88' : '#666'}; font-size:14px;">${m.buyers == null ? '—' : m.buyers}</b><span style="color:#666;"> / ${m.sellerCount}</span></td>
+          <td style="color:${m.reworkBuyers > 0 ? '#ccc' : '#666'};">${m.reworkBuyers == null ? '—' : m.reworkBuyers}</td>
           <td>${scUsd(m.buyerPrice)}</td>
           <td>${scUsd(m.buyerWholesale)}</td>
           <td style="color:#00ff88;">${scYen(m.buyerCost)}</td>
