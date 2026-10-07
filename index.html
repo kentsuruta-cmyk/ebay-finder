@@ -546,13 +546,13 @@
     let _scOpen = new Set();
 
     function resetCandidates() {
-      document.getElementById('scCandidates2').value = SC_DEFAULT;
+      document.getElementById('scCandidates').value = SC_DEFAULT;
       try { localStorage.removeItem('scCandidates2'); } catch (e) {}
     }
     (function initScreen() {
       let saved = null;
       try { saved = localStorage.getItem('scCandidates2'); } catch (e) {}
-      document.getElementById('scCandidates2').value = saved || SC_DEFAULT;
+      document.getElementById('scCandidates').value = saved || SC_DEFAULT;
     })();
 
     function scParams() {
@@ -724,7 +724,7 @@
     }
 
     async function startScreen() {
-      const text = document.getElementById('scCandidates2').value;
+      const text = document.getElementById('scCandidates').value;
       try { localStorage.setItem('scCandidates2', text); } catch (e) {}
       const list = text.split('\n').map(l => l.trim()).filter(Boolean).map(l => {
         const parts = l.split('|').map(x => x.trim());
