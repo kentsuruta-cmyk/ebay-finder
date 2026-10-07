@@ -241,9 +241,9 @@
           ※見ているのは eBay.com（米国サイト）に<b>いま出品されているもの</b>です。売れた件数は取れません。
         </p>
         <div class="form-group">
-          <label>候補リスト（1行に1つ。「名前 | eBayの検索語」。自由に足したり消したりできます）</label>
+          <label>候補リスト（1行に1つ。「名前 | eBayの検索語 | メルカリの検索語」。自由に足したり消したりできます）</label>
           <textarea id="scCandidates" rows="10" style="background:#0a0a0a; border:1px solid #333; color:#fff; padding:10px; border-radius:4px; font-family:'Courier New',monospace; font-size:12px; line-height:1.6;"></textarea>
-          <div class="hint"><a href="#" onclick="resetCandidates(); return false;" style="color:#00ff88;">初期リスト（30個＋基準2つ）に戻す</a></div>
+          <div class="hint"><a href="#" onclick="resetCandidates(); return false;" style="color:#00ff88;">初期リストに戻す</a></div>
         </div>
         <div class="form-grid" style="grid-template-columns: repeat(5, 1fr);">
           <div class="form-group"><label>状態</label>
@@ -286,7 +286,9 @@
           <b>うち整備・改造</b>＝卸先候補のうち、状態が「整備済み（Refurbished）」の出品や、タイトルに整備・改造・外装交換を示す語（refurbished / restored / custom / modded / new shell / IPS / serviced など）がある出品を2点以上（または出品の3割以上）出しているセラーの数。難あり品を仕入れて直して売る相手です。<br>
           <b>日本のジャンク出品</b>＝日本発送で状態が「部品取り・動作しない」の出品数と、その売値の中央値。素材が出回っているかの目安です。<br>
           <b>卸先候補</b>＝日本以外から、その商品を3点以上・評価300以上で売っているセラーのうち、仕入れ上限（卸）が仕入れ上限（直販）以上になるセラーの数。直販するより卸したほうが有利な相手です。「卸先の売値」以降の3列は、その候補セラーの中央値です。<br>
-          ※どちらの上限も、国内で実際にいくらで仕入れられるかとは別です。ヤフオク・メルカリの相場と見比べてください。<br>
+          <b>国内相場</b>＝メルカリで売り切れになった出品（3,000円以上・新しい順に最大120件）の売値の中央値。検索語が広いと別の物が混ざるので、行を開いて中身を確かめてください。<br>
+          <b>余裕</b>＝（仕入れ上限（卸）− 国内相場）÷ 国内相場。プラスなら、国内相場で仕入れても卸が成り立つ計算です。<br>
+          <b>国内の売れ行き</b>＝メルカリで売れた件数の目安（1日あたり）。仕入れの数がまとまるかを見ます。120件の上限に当たったときは「以上」と出ます。<br>
           <b>上位15型番の割合</b>＝タイトルから型番が読み取れた出品のうち、上位15型番で占める割合。高いほど少ない型番で回せます。型番の読み取りは機械的なので目安です。<br>
         </div>
       </div>
@@ -503,39 +505,40 @@
 
     // ───────── 商品ふるい分け ─────────
     const SC_DEFAULT = [
-      'ゲームボーイ（基準） | Game Boy console',
-      'GBA SP（基準・実際に卸している） | Game Boy Advance SP console',
-      'コンパクトフィルムカメラ | point and shoot film camera',
-      'オールドレンズ | vintage camera lens',
-      '古いコンパクトデジカメ | CCD digital camera',
-      '露出計 | Sekonic light meter',
-      'G-SHOCK | Casio G-Shock',
-      'セイコー機械式時計 | Seiko automatic watch',
-      'カシオの古いデジタル時計 | Casio vintage digital watch',
-      '釣りリール | Shimano reel',
-      'ルアー | Megabass lure',
-      'ウォークマン | Sony Walkman cassette',
-      'MDプレーヤー | MiniDisc player',
-      'レコード針（カートリッジ） | phono cartridge',
-      'ヘッドホン | Audio-Technica headphones',
-      'エフェクター | Boss guitar pedal',
-      '小型シンセ・音源 | Roland sound module',
-      '万年筆 | Japanese fountain pen',
-      '製図用シャープペン | drafting mechanical pencil',
-      '関数電卓 | Casio scientific calculator',
-      '包丁 | Japanese kitchen knife',
-      '理美容ハサミ | Japanese hair scissors',
-      '盆栽鋏 | bonsai shears',
-      '鉋・鑿 | Japanese chisel',
-      '日本語版トレカ | Pokemon card Japanese',
-      'フィギュア | anime figure',
-      'Nゲージ | Kato N scale',
-      'ミニ四駆・ラジコン | Tamiya RC',
-      'たまごっち | Tamagotchi',
-      'ベイブレード | Beyblade Takara Tomy',
-      '自転車部品 | Shimano Dura-Ace',
-      'ライター | Dupont lighter',
-      '眼鏡フレーム | vintage eyeglasses Japan',
+      'ゲームボーイ（基準） | Game Boy console | ゲームボーイ 本体',
+      'GBA SP（基準・実際に卸している） | Game Boy Advance SP console | ゲームボーイアドバンスSP 本体',
+      'PSP | Sony PSP console | PSP 本体',
+      '3DS | Nintendo 3DS console | 3DS 本体',
+      'ゲームギア | Sega Game Gear console | ゲームギア 本体',
+      'iPod classic | iPod classic | iPod classic',
+      'iPod nano | iPod nano | iPod nano',
+      'リール（シマノ） | Shimano reel | シマノ リール',
+      'リール（ダイワ） | Daiwa reel | ダイワ リール',
+      'シマノ ステラ | Shimano Stella | シマノ ステラ',
+      'ベイトリール（メタニウム） | Shimano Metanium | シマノ メタニウム',
+      'ゴルフ ドライバー（本間） | Honma driver | 本間ゴルフ ドライバー',
+      'ゴルフ ドライバー（ゼクシオ） | XXIO driver | ゼクシオ ドライバー',
+      'ゴルフ アイアン（三浦技研） | Miura irons | 三浦技研 アイアン',
+      'パター（スコッティキャメロン） | Scotty Cameron putter | スコッティキャメロン パター',
+      'ゴルフシャフト（ツアーAD） | Tour AD shaft | ツアーAD シャフト',
+      '野球グローブ（ミズノプロ） | Mizuno Pro glove | ミズノプロ グローブ',
+      'バドミントンラケット | Yonex Astrox | ヨネックス アストロクス',
+      '卓球ラケット | Butterfly table tennis blade | バタフライ 卓球 ラケット',
+      'グランドセイコー | Grand Seiko | グランドセイコー',
+      'G-SHOCK フロッグマン | G-Shock Frogman | Gショック フロッグマン',
+      '高級コンパクトカメラ（Contax T2） | Contax T2 | コンタックス T2',
+      '高級コンパクトカメラ（Ricoh GR1） | Ricoh GR1 | リコー GR1',
+      'オールドレンズ（タクマー） | Takumar lens | タクマー レンズ',
+      '古いデジカメ（サイバーショット） | Sony Cyber-shot | サイバーショット',
+      'ウォークマン | Sony Walkman cassette | ウォークマン カセット',
+      'エフェクター | Boss guitar pedal | BOSS エフェクター',
+      'レコード針（カートリッジ） | phono cartridge | レコード カートリッジ',
+      'Nゲージ | Kato N scale | KATO Nゲージ',
+      'ミニ四駆・ラジコン | Tamiya RC | タミヤ ラジコン',
+      '万年筆 | Pilot fountain pen | パイロット 万年筆',
+      'カシオの古いデジタル時計 | Casio vintage digital watch | カシオ デジタル 腕時計 ヴィンテージ',
+      'ライター | Dupont lighter | デュポン ライター',
+      '自転車部品 | Shimano Dura-Ace | デュラエース',
     ].join('\n');
 
     let _sc = [];               // { name, keyword, state: 'wait'|'run'|'done'|'error', data, error }
@@ -543,13 +546,13 @@
     let _scOpen = new Set();
 
     function resetCandidates() {
-      document.getElementById('scCandidates').value = SC_DEFAULT;
-      try { localStorage.removeItem('scCandidates'); } catch (e) {}
+      document.getElementById('scCandidates2').value = SC_DEFAULT;
+      try { localStorage.removeItem('scCandidates2'); } catch (e) {}
     }
     (function initScreen() {
       let saved = null;
-      try { saved = localStorage.getItem('scCandidates'); } catch (e) {}
-      document.getElementById('scCandidates').value = saved || SC_DEFAULT;
+      try { saved = localStorage.getItem('scCandidates2'); } catch (e) {}
+      document.getElementById('scCandidates2').value = saved || SC_DEFAULT;
     })();
 
     function scParams() {
@@ -604,6 +607,12 @@
         buyerWholesale: med(buyers.map(s => s.wholesale)),
         buyerCost: med(buyers.map(s => s.cost)),
         directCost,
+        // 国内の相場（メルカリで売れた値段の中央値）と、仕入れ上限（卸）に対する余裕
+        domestic: row.domestic && !row.domestic.error ? row.domestic.median : null,
+        soldPerDay: row.domestic && !row.domestic.error ? row.domestic.soldPerDay : null,
+        get room() {
+          return this.domestic && this.buyerCost ? (this.buyerCost - this.domestic) / this.domestic : null;
+        },
         top15: d.top15Share,
         sellers,
       };
@@ -621,6 +630,17 @@
     function scToggle(i) {
       if (_scOpen.has(i)) _scOpen.delete(i); else _scOpen.add(i);
       renderScreen();
+    }
+
+    function scDomestic(row) {
+      const x = row.domestic;
+      if (!x) return '';
+      if (x.error) return `<div style="color:#ff6b6b; font-size:11px; margin-bottom:8px;">国内相場を取得できませんでした: ${scEsc(x.error)}</div>`;
+      const samples = (x.samples || []).slice(0, 5).map(i => `<a href="${scEsc(i.url)}" target="_blank" rel="noopener" style="color:#aaa;">${scEsc(i.title)}</a> ¥${i.price.toLocaleString()}`).join('<br>');
+      return `<div style="color:#888; font-size:11px; margin:0 0 8px;">
+        <span style="color:#00ff88; letter-spacing:1px;">国内相場（メルカリで売れた値段）</span>
+        検索語「${scEsc(x.keyword)}」／${x.count}件／下位25% ¥${(x.p25 || 0).toLocaleString()}・中央値 ¥${(x.median || 0).toLocaleString()}・上位25% ¥${(x.p75 || 0).toLocaleString()}
+        <div style="margin-top:4px; line-height:1.7;">${samples}</div></div>`;
     }
 
     function scDetail(row, m) {
@@ -642,10 +662,12 @@
       const pairRows = (d.sameModelPairs || []).map(x =>
         `<tr><td class="left">${scEsc(x.token)}</td><td>${scUsd(x.jpMedian)}（${x.jpCount}点）</td><td>${scUsd(x.overseasMedian)}（${x.overseasCount}点）</td><td>${x.ratio.toFixed(2)}倍</td></tr>`).join('');
       const models = (d.topModels || []).map(x => `${scEsc(x.token)}（${x.count}）`).join('、');
-      return `<tr><td colspan="12" class="left" style="background:#0d0d0d; padding:16px 20px;">
+      return `<tr><td colspan="11" class="left" style="background:#0d0d0d; padding:16px 20px;">
         <div style="color:#888; font-size:11px; margin-bottom:8px;">
-          検索語「${scEsc(d.keyword)}」／読んだ出品 ${d.scanned}点（日本発送 ${d.scannedJp}・海外発送 ${d.scannedOverseas}）／海外セラーの売値の中央値 ${scUsd(d.overseasMedian)}
+          検索語「${scEsc(d.keyword)}」／eBayの出品 ${(d.totalListings || 0).toLocaleString()}点／読んだ出品 ${d.scanned}点（日本発送 ${d.scannedJp}・海外発送 ${d.scannedOverseas}）／海外セラーの売値の中央値 ${scUsd(d.overseasMedian)}<br>
+          自分で直販する場合の仕入れ上限 ${scYen(m.directCost)}（日本セラーの安値帯 ${scUsd(m.jpP25)} から）／日本発送のジャンク出品 ${(d.jpJunkListings || 0).toLocaleString()}点・中央値 ${scUsd(d.jpJunkMedian)}
         </div>
+        ${scDomestic(row)}
         <div style="color:#00ff88; font-size:11px; letter-spacing:1px; margin:10px 0 6px;">海外セラー（整備・改造して売っているセラーが先・上位20）</div>
         ${sellerRows ? `<table class="seller-table"><thead><tr><th class="left">セラー</th><th>国</th><th>評価数</th><th>出品</th><th>売値の中央値</th><th>卸値の上限</th><th>国内仕入れ上限</th><th class="left">出品の例</th></tr></thead><tbody>${sellerRows}</tbody></table>` : '<div style="color:#666; font-size:12px;">条件に合う海外セラーはいませんでした。</div>'}
         <div style="color:#00ff88; font-size:11px; letter-spacing:1px; margin:16px 0 6px;">同じ型番での価格差</div>
@@ -671,26 +693,25 @@
       const th = (key, label, cls) => `<th class="${cls || ''}" style="cursor:pointer;" onclick="scSortBy('${key}')">${label}${_scSort.key === key ? (_scSort.dir < 0 ? ' ▼' : ' ▲') : ''}</th>`;
       const p = scParams();
       let html = `<table class="seller-table"><thead><tr>
-        ${th('name', '商品', 'left')}${th('buyers', '卸先候補')}${th('reworkBuyers', 'うち整備・改造')}${th('buyerPrice', '卸先の売値')}${th('buyerWholesale', '卸値の上限')}
-        ${th('buyerCost', '仕入れ上限（卸）')}${th('directCost', '仕入れ上限（直販）')}${th('junkListings', '日本のジャンク出品')}${th('jpShare', '日本発送の割合')}${th('listings', '出品数')}${th('top15', '上位15型番の割合')}<th></th>
+        ${th('name', '商品', 'left')}${th('buyers', '卸先候補')}${th('reworkBuyers', 'うち整備・改造')}${th('buyerPrice', '卸先の売値')}
+        ${th('buyerCost', '仕入れ上限（卸）')}${th('domestic', '国内相場')}${th('room', '余裕')}${th('soldPerDay', '国内の売れ行き')}${th('jpShare', '日本発送の割合')}${th('top15', '上位15型番の割合')}<th></th>
       </tr></thead><tbody>`;
       for (const { row, i, m } of rows) {
         if (row.state !== 'done') {
           const msg = row.state === 'error' ? `<span style="color:#ff6b6b;">${scEsc(row.error)}</span>` : row.state === 'run' ? '調べています...' : '待機中';
-          html += `<tr><td class="left">${scEsc(row.name)}</td><td colspan="11" class="left" style="color:#666;">${msg}</td></tr>`;
+          html += `<tr><td class="left">${scEsc(row.name)}</td><td colspan="10" class="left" style="color:#666;">${msg}</td></tr>`;
           continue;
         }
         html += `<tr style="cursor:pointer;" onclick="scToggle(${i})" class="${m.buyers >= 10 ? 'priority-row' : ''}">
           <td class="left"><b style="color:#fff;">${scEsc(row.name)}</b><div style="color:#555; font-size:10px;">${scEsc(row.keyword)}</div></td>
           <td><b style="color:${m.buyers > 0 ? '#00ff88' : '#666'}; font-size:14px;">${m.buyers == null ? '—' : m.buyers}</b><span style="color:#666;"> / ${m.sellerCount}</span></td>
           <td style="color:${m.reworkBuyers > 0 ? '#ccc' : '#666'};">${m.reworkBuyers == null ? '—' : m.reworkBuyers}</td>
-          <td>${scUsd(m.buyerPrice)}</td>
-          <td>${scUsd(m.buyerWholesale)}</td>
-          <td style="color:#00ff88;">${scYen(m.buyerCost)}</td>
-          <td>${scYen(m.directCost)}<div style="color:#555; font-size:10px;">日本の安値帯 ${scUsd(m.jpP25)}</div></td>
-          <td>${m.junkListings == null ? '—' : m.junkListings.toLocaleString()}<div style="color:#555; font-size:10px;">中央値 ${scUsd(m.junkMedian)}</div></td>
+          <td>${scUsd(m.buyerPrice)}<div style="color:#555; font-size:10px;">卸値の上限 ${scUsd(m.buyerWholesale)}</div></td>
+          <td>${scYen(m.buyerCost)}</td>
+          <td>${row.domestic && row.domestic.error ? '<span style="color:#ff6b6b; font-size:10px;">取得失敗</span>' : scYen(m.domestic)}</td>
+          <td><b style="color:${m.room == null ? '#666' : m.room >= 0 ? '#00ff88' : '#ff6b6b'};">${m.room == null ? '—' : (m.room >= 0 ? '+' : '') + Math.round(m.room * 100) + '%'}</b></td>
+          <td>${m.soldPerDay == null ? '—' : m.soldPerDay + '件/日' + (row.domestic.capped ? '以上' : '')}</td>
           <td>${scPct(m.jpShare)}</td>
-          <td>${m.listings == null ? '—' : m.listings.toLocaleString()}</td>
           <td>${scPct(m.top15)}</td>
           <td style="color:#555;">${_scOpen.has(i) ? '▲' : '▼'}</td>
         </tr>`;
@@ -703,11 +724,11 @@
     }
 
     async function startScreen() {
-      const text = document.getElementById('scCandidates').value;
-      try { localStorage.setItem('scCandidates', text); } catch (e) {}
+      const text = document.getElementById('scCandidates2').value;
+      try { localStorage.setItem('scCandidates2', text); } catch (e) {}
       const list = text.split('\n').map(l => l.trim()).filter(Boolean).map(l => {
         const parts = l.split('|').map(x => x.trim());
-        return { name: parts[0], keyword: parts[1] || parts[0], state: 'wait', data: null, error: '' };
+        return { name: parts[0], keyword: parts[1] || parts[0], jpKeyword: parts[2] || '', state: 'wait', data: null, domestic: null, error: '' };
       });
       if (!list.length) return;
       _sc = list;
@@ -725,10 +746,15 @@
         row.state = 'run';
         renderScreen();
         try {
+          // 国内の相場（メルカリで売れた値段）も同時に取る。こちらが取れなくても eBay 側の結果は出す
+          const domesticPromise = row.jpKeyword
+            ? fetch('/api/domestic?' + new URLSearchParams({ keyword: row.jpKeyword })).then(r => r.json()).catch(e => ({ error: e.message }))
+            : Promise.resolve(null);
           const res = await fetch('/api/screen?' + new URLSearchParams({ keyword: row.keyword, minPrice, conditionIds }));
           const data = await res.json();
           if (!res.ok) throw new Error(data.error || '取得に失敗しました');
           row.data = data;
+          row.domestic = await domesticPromise;
           row.state = 'done';
         } catch (e) {
           row.state = 'error';
