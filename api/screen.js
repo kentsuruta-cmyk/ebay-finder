@@ -67,7 +67,7 @@ module.exports = async (req, res) => {
   const {
     keyword,
     minPrice = '50',        // これ未満は付属品・部品とみなして母数から外す（USD）
-    conditionIds = '3000',  // 既定は中古
+    conditionIds = '3000',  // 既定は中古。1000=新品、空文字=すべて
     minFeedback = '300',    // 「卸先になり得るセラー」の最低評価数
     minHits = '3',          // 同上：この検索で何点以上出していれば継続的に扱っているとみなすか
   } = req.query;

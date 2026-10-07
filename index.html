@@ -245,7 +245,14 @@
           <textarea id="scCandidates" rows="10" style="background:#0a0a0a; border:1px solid #333; color:#fff; padding:10px; border-radius:4px; font-family:'Courier New',monospace; font-size:12px; line-height:1.6;"></textarea>
           <div class="hint"><a href="#" onclick="resetCandidates(); return false;" style="color:#00ff88;">初期リスト（30個＋基準）に戻す</a></div>
         </div>
-        <div class="form-grid" style="grid-template-columns: repeat(6, 1fr);">
+        <div class="form-grid" style="grid-template-columns: repeat(7, 1fr);">
+          <div class="form-group"><label>状態</label>
+            <select id="scCondition">
+              <option value="3000" selected>中古</option>
+              <option value="1000">新品</option>
+              <option value="">すべて</option>
+            </select>
+          </div>
           <div class="form-group"><label>為替（円/ドル）</label><input type="number" id="scFx" value="150" oninput="renderScreen()"></div>
           <div class="form-group"><label>eBay手数料 %</label><input type="number" id="scFee" value="20" oninput="renderScreen()"></div>
           <div class="form-group"><label>関税 %</label><input type="number" id="scDuty" value="12" oninput="renderScreen()"></div>
@@ -254,7 +261,7 @@
           <div class="form-group"><label>最低価格 $</label><input type="number" id="scMinPrice" value="50"></div>
         </div>
         <div class="hint">
-          手数料・関税・送料・粗利は、押し直さなくても表にすぐ反映されます。最低価格だけは調べ直しが必要です（これ未満の出品は付属品・部品とみなして外します）。<br>
+          手数料・関税・送料・粗利は、押し直さなくても表にすぐ反映されます。状態と最低価格は調べ直しが必要です（最低価格未満の出品は付属品・部品とみなして外します）。<br>
           為替の150円は仮の値です。いまのレートに直してください。国際送料は1個ずつ送る場合の額で、まとめて送る卸では下がります。
         </div>
         <button class="search-btn" id="scBtn" onclick="startScreen()">▶ 全部まとめて調べる</button>
@@ -676,12 +683,13 @@
       renderScreen();
 
       const minPrice = document.getElementById('scMinPrice').value || '0';
+      const conditionIds = document.getElementById('scCondition').value;
       // eBay への同時アクセスを抑えるため2件ずつ
       await mapLimit(list, 2, async (row) => {
         row.state = 'run';
         renderScreen();
         try {
-          const res = await fetch('/api/screen?' + new URLSearchParams({ keyword: row.keyword, minPrice }));
+          const res = await fetch('/api/screen?' + new URLSearchParams({ keyword: row.keyword, minPrice, conditionIds }));
           const data = await res.json();
           if (!res.ok) throw new Error(data.error || '取得に失敗しました');
           row.data = data;
