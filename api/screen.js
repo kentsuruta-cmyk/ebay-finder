@@ -47,6 +47,13 @@ function modelTokens(title) {
   return [...out];
 }
 
+// 手を入れて売っている出品の目印。
+// 状態が「整備済み（Refurbished）」のもの、またはタイトルに整備・改造・外装交換を示す語があるもの。
+// こういう出品が多いセラーは、素材（難あり品・ジャンク）を仕入れて直して売る業態＝卸先の本命。
+const REWORK_RE = new RegExp(
+  '\\b(refurb\\w*|restor\\w*|reconditioned|custom(i[sz]ed)?|mod(ded|ified)?|re-?shell\\w*|new (shell|housing|case|screen|lcd|lens|battery|belt|belts|strap|band|pads?)|' +
+  'ips|backlit|backlight|serviced|overhaul\\w*|cla\\b|cla\'?d|recapp?ed|re-?cap|repaired|rebuilt|upgraded|re-?lubed|polished|re-?foamed|re-?belted)\\b', 'i');
+
 function slim(item) {
   const price = item.price && item.price.currency === 'USD' ? parseFloat(item.price.value) : null;
   return {
@@ -57,6 +64,7 @@ function slim(item) {
     seller: item.seller ? item.seller.username : null,
     feedback: item.seller ? item.seller.feedbackScore || 0 : 0,
     tokens: modelTokens(item.title),
+    rework: /refurbished/i.test(item.condition || '') || REWORK_RE.test(item.title || ''),
   };
 }
 
@@ -67,7 +75,8 @@ module.exports = async (req, res) => {
   const {
     keyword,
     minPrice = '50',        // これ未満は付属品・部品とみなして母数から外す（USD）
-    conditionIds = '3000',  // 既定は中古。1000=新品、空文字=すべて
+    // 既定は中古＋整備済み（3000=Used、2010〜2030=グレード付き整備済み、2500=セラー整備済み）。1000=新品、空文字=すべて
+    conditionIds = '3000,2010,2020,2030,2500',
     minFeedback = '300',    // 「卸先になり得るセラー」の最低評価数
     minHits = '3',          // 同上：この検索で何点以上出していれば継続的に扱っているとみなすか
   } = req.query;
@@ -81,6 +90,12 @@ module.exports = async (req, res) => {
   try {
     // 全体（おすすめ順の先頭1000件）と、日本発送だけ（先頭400件）を別々に取る。
     // 全体だけだと日本発送の出品が埋もれて、日本セラーの価格が安定して出ないため。
+    // 日本発送の「部品取り・動作しない」出品。素材（ジャンク）がeBay上でいくらで出ているかの目安。
+    // 安いものが多いので、最低価格はかけない。
+    const junkPromise = searchItems({
+      globalId, keyword, maxItems: 200, conditionIds: ['7000'], extraFilters: ['itemLocationCountry:JP'],
+    }).catch(() => ({ items: [], total: 0 }));
+
     const [all, jp] = await Promise.all([
       searchItems({ globalId, keyword, maxItems: 1000, conditionIds: conds, extraFilters: priceFilter }),
       searchItems({ globalId, keyword, maxItems: 400, conditionIds: conds, extraFilters: [...priceFilter, 'itemLocationCountry:JP'] }),
@@ -146,10 +161,14 @@ module.exports = async (req, res) => {
     const needHits = Math.max(1, parseInt(minHits, 10) || 3);
     const sellerMap = new Map();
     for (const it of overseas) {
-      if (!sellerMap.has(it.seller)) sellerMap.set(it.seller, { username: it.seller, country: it.country, feedback: it.feedback, prices: [], titles: [] });
+      if (!sellerMap.has(it.seller)) sellerMap.set(it.seller, { username: it.seller, country: it.country, feedback: it.feedback, prices: [], titles: [], rework: 0, reworkTitles: [] });
       const s = sellerMap.get(it.seller);
       s.prices.push(it.price);
       if (s.titles.length < 3) s.titles.push(it.title.slice(0, 80));
+      if (it.rework) {
+        s.rework++;
+        if (s.reworkTitles.length < 2) s.reworkTitles.push(it.title.slice(0, 80));
+      }
     }
     const sellers = [...sellerMap.values()]
       .filter((s) => s.prices.length >= needHits && s.feedback >= minFb)
@@ -160,13 +179,24 @@ module.exports = async (req, res) => {
         hits: s.prices.length,
         medianPrice: round(median(s.prices)),
         ratio: jpMedian ? round(median(s.prices) / jpMedian) : null,
-        titles: s.titles,
+        // 手を入れて売っている出品の数。2点以上、または出品の3割以上ならその業態とみなす
+        reworkHits: s.rework,
+        isReworker: s.rework >= 2 || s.rework / s.prices.length >= 0.3,
+        titles: s.reworkTitles.length ? s.reworkTitles : s.titles,
       }))
       .sort((a, b) => b.hits - a.hits);
+
+    const junk = await junkPromise;
+    const junkPrices = junk.items
+      .map((i) => (i.price && i.price.currency === 'USD' ? parseFloat(i.price.value) : null))
+      .filter((x) => x != null && !Number.isNaN(x));
 
     return res.status(200).json({
       keyword,
       minPrice: floor,
+      jpJunkListings: junk.total,              // 日本発送の「部品取り・動作しない」出品の数
+      jpJunkMedian: round(median(junkPrices)),
+      reworkShare: overseas.length ? round(overseas.filter((i) => i.rework).length / overseas.length, 3) : null,
       totalListings: all.total,          // eBay側の総ヒット数（条件に合う出品の実数）
       jpListings: jp.total,              // うち日本発送
       jpShare: all.total ? round(jp.total / all.total, 3) : null,
