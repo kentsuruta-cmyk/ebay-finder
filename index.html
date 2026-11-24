@@ -128,6 +128,35 @@
     .copy-btn { flex: 1; background: #00ff88; border: none; color: #000; padding: 10px; border-radius: 4px; cursor: pointer; font-family: 'Courier New', monospace; font-size: 12px; font-weight: bold; }
     .close-btn { background: #333; border: none; color: #fff; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-family: 'Courier New', monospace; font-size: 12px; }
     .generating { color: #888; font-size: 12px; padding: 20px; text-align: center; }
+    /* 売り込む商品の切替 */
+    .pitch-bar { display: flex; align-items: center; gap: 10px; padding: 10px 24px; background: #101010; border-bottom: 1px solid #222; font-size: 12px; color: #aaa; }
+    .pitch-bar select { background: #0a0a0a; border: 1px solid #00ff88; color: #00ff88; padding: 6px 10px; border-radius: 4px; font-family: 'Courier New', monospace; font-size: 12px; }
+    /* 窓口バッジ */
+    .ct { display: inline-block; font-size: 10px; font-weight: bold; padding: 2px 5px; border-radius: 3px; margin: 1px; text-decoration: none; white-space: nowrap; }
+    .ct-strong { background: #00ff88; color: #000; }
+    .ct-site { border: 1px solid #00ff88; color: #00ff88; }
+    .ct-name { border: 1px dashed #f59e0b; color: #f59e0b; }
+    .ct-none { color: #333; }
+    .jp-badge { background: #ff2d6b; color: #fff; font-size: 9px; padding: 2px 5px; border-radius: 3px; font-weight: bold; }
+    .sent-badge { background: #333; color: #aaa; font-size: 9px; padding: 2px 5px; border-radius: 3px; white-space: nowrap; }
+    tr.sent-row td { opacity: 0.55; }
+    .tools-row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin: 10px 0 14px; font-size: 12px; color: #aaa; }
+    .tools-row select { background: #0a0a0a; border: 1px solid #333; color: #fff; padding: 5px 8px; border-radius: 4px; font-family: 'Courier New', monospace; }
+    .tools-row label { display: flex; align-items: center; gap: 5px; cursor: pointer; text-transform: none; letter-spacing: 0; margin: 0; color: #aaa; font-size: 12px; }
+    .small-btn { background: #1a1a1a; border: 1px solid #00ff88; color: #00ff88; padding: 7px 14px; border-radius: 4px; cursor: pointer; font-family: 'Courier New', monospace; font-size: 12px; }
+    .small-btn:disabled { opacity: 0.4; cursor: default; }
+    /* 文面モーダル */
+    .ch-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0 10px; }
+    .ch-tab { background: #1a1a1a; border: 1px solid #333; color: #aaa; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-family: 'Courier New', monospace; font-size: 12px; }
+    .ch-tab.active { border-color: #00ff88; color: #00ff88; }
+    .ch-tab .done { color: #00ff88; }
+    .msg-box input.subject { width: 100%; background: #0a0a0a; border: 1px solid #333; color: #fff; padding: 10px 12px; border-radius: 4px; font-family: 'Courier New', monospace; font-size: 12px; margin-bottom: 8px; }
+    .ch-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+    .ch-actions a, .ch-actions button { flex: 1; min-width: 120px; text-align: center; text-decoration: none; background: #1a1a1a; border: 1px solid #00ff88; color: #00ff88; padding: 9px; border-radius: 4px; cursor: pointer; font-family: 'Courier New', monospace; font-size: 12px; }
+    .ch-actions .primary { background: #00ff88; color: #000; font-weight: bold; }
+    .ct-list { font-size: 11px; line-height: 1.9; color: #aaa; background: #0a0a0a; border: 1px solid #222; border-radius: 4px; padding: 8px 12px; }
+    .ct-list a { color: #00ff88; }
+    .warn { color: #f59e0b; font-size: 11px; margin-top: 6px; }
   </style>
 </head>
 <body>
@@ -140,6 +169,15 @@
     <button class="tab-btn active" onclick="switchTab('ebay', event)">📦 eBay Seller Finder</button>
     <button class="tab-btn" onclick="switchTab('shop', event)">🌐 Shop Finder</button>
     <button class="tab-btn" onclick="switchTab('screen', event)">🔎 商品ふるい分け</button>
+  </div>
+
+  <div class="pitch-bar">
+    売り込む商品：
+    <select id="pitch" onchange="savePitch()">
+      <option value="retro">レトロ小型ゲーム機（中古）</option>
+      <option value="new_jp">日本限定の新品（Switch・アクセサリー）</option>
+    </select>
+    <span style="color:#555;">営業文の中身がこれで変わります（eBay Seller Finder・Shop Finder 共通）</span>
   </div>
 
   <div id="tab-ebay" class="tab-panel active">
@@ -222,7 +260,21 @@
           <span>SCORE</span>：出品数・評価率・規模適合・出品マーケット数・屋号シグナルの合成値（狙うセラー規模の設定で変わります）
           &nbsp;／&nbsp; <span>LISTINGS</span>：そのセラーが検索キーワードで出品している実件数（eBayに問い合わせた実数。複数キーワード時は最大値）
           &nbsp;／&nbsp; <span>HITS</span>：今回走査した範囲での該当件数
-          &nbsp;／&nbsp; SNSアイコン: カラー = 確認済み &nbsp; — = 未取得（日本発送のセラーは除外済み）
+          &nbsp;／&nbsp; <span>窓口</span>：<span class="ct ct-strong">FORM</span><span class="ct ct-strong">MAIL</span> = HPから実測（すぐ送れる） &nbsp;<span class="ct ct-site">IG</span> = HPに載っていたSNS &nbsp;<span class="ct ct-name">IG?</span> = 名前が同じだけ（別人の可能性あり・要確認） &nbsp;<span class="jp-badge">JP</span> = HPに日本からの輸入品の記載あり（日本発送のセラーは除外済み）
+        </div>
+        <div class="tools-row" id="sellerTools" style="display:none;">
+          <span>上位</span>
+          <select id="lookupCount">
+            <option value="10">10</option>
+            <option value="20" selected>20</option>
+            <option value="40">40</option>
+            <option value="60">60</option>
+          </select>
+          <span>件の</span>
+          <button class="small-btn" id="lookupBtn" onclick="lookupTopContacts()">🔎 窓口を調べる（HP・SNS）</button>
+          <label><input type="checkbox" id="onlyContact" onchange="resortSellers()"> 窓口ありだけ表示</label>
+          <label><input type="checkbox" id="hideSent" onchange="resortSellers()"> 送信済みを隠す</label>
+          <button class="small-btn" onclick="downloadSellerCSV()">📥 CSV</button>
         </div>
         <div id="progressLog"></div>
         <div id="resultsBody"></div>
@@ -338,10 +390,10 @@
 
   <div class="msg-modal" id="msgModal">
     <div class="msg-box">
-      <h3>▸ GENERATED MESSAGE</h3>
+      <h3 id="msgTitle">▸ MESSAGE</h3>
       <div id="msgContent"></div>
       <div class="msg-actions">
-        <button class="copy-btn" onclick="copyMessage()">📋 COPY MESSAGE</button>
+        <button class="copy-btn" id="regenBtn" onclick="regenerateMessage()">↻ 文面を作り直す</button>
         <button class="close-btn" onclick="closeModal()">CLOSE</button>
       </div>
     </div>
@@ -401,13 +453,19 @@
         reach:      clamp01(s.markets.size / 6),                           // 越境展開
         name:       isPrioritySeller(s.username) ? 1 : 0,                  // 屋号シグナル
       };
-      const score = 100 * (
+      const base = 100 * (
         parts.assortment * 0.30 +
         parts.size       * 0.30 +
         parts.rating     * 0.20 +
         parts.reach      * 0.10 +
         parts.name       * 0.10
       );
+      // 窓口を調べたあとは「すぐ送れる相手」を大きく上げる。
+      // HPに問い合わせ窓口がある＝ちゃんとした店なので、日本限定の新品も含めて取引の可能性が高い。
+      const lv = contactLevel(s.contacts);
+      parts.contact = lv === 2 ? 1 : lv === 1 ? 0.3 : 0;
+      parts.japan = s.contacts && s.contacts.japanSignals && s.contacts.japanSignals.length ? 1 : 0;
+      const score = Math.min(100, base * 0.65 + parts.contact * 25 + parts.japan * 10);
       return { score: Math.round(score), parts };
     }
 
@@ -420,59 +478,91 @@
         `評価率 ${pct(p.rating)}`,
         `越境 ${pct(p.reach)}`,
         `屋号 ${pct(p.name)}`,
+        s.contacts ? `窓口 ${pct(p.contact)}` : '窓口 未調査',
+        p.japan ? '日本輸入品の記載あり' : '',
         s.byKeyword ? '\n出品数: ' + Object.entries(s.byKeyword).map(([k, v]) => `${k}=${v}`).join(' / ') : '',
         s.sampleTitles && s.sampleTitles.length ? '\n出品例:\n・' + s.sampleTitles.join('\n・') : '',
       ].filter(Boolean).join(' / ');
     }
 
-    function contactCell(val, iconCls, label, isLink) {
-      if (val === null) {
-        return `<td class="contact-col"><div class="contact-cell"><span class="contact-icon unknown ${iconCls}" title="${label}: 未取得">—</span></div></td>`;
-      } else if (val === false) {
-        return `<td class="contact-col"><div class="contact-cell"><span class="contact-icon not-found ${iconCls}" title="${label}: なし">—</span></div></td>`;
-      } else {
-        const tag = isLink ? `a href="${val}" target="_blank"` : 'span';
-        const close = isLink ? 'a' : 'span';
-        return `<td class="contact-col"><div class="contact-cell"><${tag} class="contact-icon found ${iconCls}" title="${label}: ${val}">${label}</${close}></div></td>`;
+    // ── 窓口（eBayの外の連絡先）────────────────────────────────
+    // contactLevel: 2 = HPに問い合わせフォーム/メール（すぐ送れる） / 1 = SNSのみ / 0 = なし
+    function contactLevel(c) {
+      if (!c) return 0;
+      if (c.siteFetched && (c.contactForm || c.email || c.contactPage)) return 2;
+      if (c.instagram || c.facebook || c.x) return 1;
+      return 0;
+    }
+
+    function esc(v) {
+      return String(v == null ? '' : v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function contactBadges(c) {
+      if (!c) return '<span class="ct ct-none" title="まだ調べていません">未調査</span>';
+      if (c.error) return `<span class="ct ct-none" title="${esc(c.error)}">エラー</span>`;
+      const b = [];
+      const formUrl = c.contactForm || c.contactPage;
+      if (formUrl) b.push(`<a class="ct ct-strong" href="${esc(formUrl)}" target="_blank" title="問い合わせページ">FORM</a>`);
+      if (c.email) b.push(`<a class="ct ct-strong" href="mailto:${esc(c.email)}" title="${esc(c.email)}">MAIL</a>`);
+      if (c.website && !formUrl) b.push(`<a class="ct ct-site" href="${esc(c.website)}" target="_blank" title="HP（${c.websiteMatch === 'domain' ? 'ドメイン名が一致' : 'タイトルに名前あり'}）">HP</a>`);
+      const sns = [['instagram', 'IG'], ['facebook', 'FB'], ['x', 'X']];
+      for (const [k, label] of sns) {
+        if (!c[k]) continue;
+        const byName = (c.source || {})[k] === 'name';
+        b.push(`<a class="ct ${byName ? 'ct-name' : 'ct-site'}" href="${esc(c[k])}" target="_blank" title="${byName ? '名前が同じだけ（要確認）' : 'HPに載っていた'}: ${esc(c[k])}">${label}${byName ? '?' : ''}</a>`);
       }
+      if (c.whatsapp) b.push(`<span class="ct ct-site" title="WhatsApp: ${esc(c.whatsapp)}">WA</span>`);
+      return b.length ? b.join('') : '<span class="ct ct-none">なし</span>';
+    }
+
+    // ── 送信記録（このブラウザに保存）──────────────────────────────
+    // key: 'ebay:<username>' / 'shop:<host>' → { email: '2026-11-24', instagram: ... }
+    function loadSent() { try { return JSON.parse(localStorage.getItem('kgSent') || '{}'); } catch (e) { return {}; } }
+    function saveSent(v) { try { localStorage.setItem('kgSent', JSON.stringify(v)); } catch (e) {} }
+    function sentFor(key) { return loadSent()[key] || {}; }
+    const CH_LABEL = { form: 'フォーム', email: 'メール', instagram: 'IG', facebook: 'FB', x: 'X' };
+    function sentBadge(key) {
+      const s = sentFor(key);
+      const chs = Object.keys(s);
+      if (!chs.length) return '';
+      const last = chs.map(k => s[k]).sort().pop();
+      return `<span class="sent-badge" title="${chs.map(k => `${CH_LABEL[k] || k}: ${s[k]}`).join(' / ')}">送信済 ${chs.map(k => CH_LABEL[k] || k).join('・')} ${last.slice(5)}</span>`;
     }
 
     function buildSellerRow(s) {
       const marketsArr = [...s.markets];
-      const kws = [...s.keywords].join(' / ');
       const priority = isPrioritySeller(s.username);
       const flag = countryFlags[s.shipFrom] || '🌐';
-      const ci = { web: null, ig: null, fb: null, email: null, wa: null, x: null };
       const ratingCls = parseFloat(s.feedbackPercentage) >= 99 ? 'rating-high' : parseFloat(s.feedbackPercentage) >= 97 ? 'rating-mid' : 'rating-low';
       const marketsHtml = marketsArr.map(m => `<span class="market-tag">${MARKET_LABELS[m] || m}</span>`).join('');
       const listings = s.listingCount != null
         ? s.listingCount.toLocaleString()
         : `<span style="color:#555;" title="出品数を取得できませんでした">?</span>`;
       const price = s.avgPrice != null ? `${s.currency || ''} ${s.avgPrice}` : '—';
-      return `<tr class="${priority ? 'priority-row' : ''}" data-username="${s.username}" title="${scoreTooltip(s).replace(/"/g, '&quot;')}">
-  <td class="left"><div class="seller-name-wrap"><a href="${getSellerUrl(s.username, marketsArr[0])}" target="_blank">${s.username}</a>${priority ? '<span class="priority-badge">⭐</span>' : ''}</div></td>
+      const key = 'ebay:' + s.username;
+      const sent = sentBadge(key);
+      const jp = s.contacts && s.contacts.japanSignals && s.contacts.japanSignals.length
+        ? `<span class="jp-badge" title="${esc(s.contacts.japanSignals.join(', '))}">JP</span>` : '';
+      return `<tr class="${priority ? 'priority-row' : ''} ${sent ? 'sent-row' : ''}" data-username="${esc(s.username)}" title="${esc(scoreTooltip(s))}">
+  <td class="left"><div class="seller-name-wrap"><a href="${getSellerUrl(s.username, marketsArr[0])}" target="_blank">${esc(s.username)}</a>${priority ? '<span class="priority-badge">⭐</span>' : ''} ${jp}</div>${sent ? `<div style="margin-top:3px;">${sent}</div>` : ''}</td>
   <td><span class="score-bar"><i style="width:${s._score}%"></i></span> <span style="font-size:11px;">${s._score}</span></td>
-  <td>${flag} ${s.shipFrom}</td>
+  <td>${flag} ${esc(s.shipFrom)}</td>
   <td><div class="market-tags">${marketsHtml}</div></td>
   <td>${s.feedbackScore.toLocaleString()}</td>
   <td class="${ratingCls}">${s.feedbackPercentage}%</td>
   <td>${listings}</td>
   <td style="color:#777;">${s.hits}</td>
   <td style="color:#777; white-space:nowrap;">${price}</td>
-  ${contactCell(ci.web,'icon-web','HP',true)}
-  ${contactCell(ci.email,'icon-email','Mail',false)}
-  ${contactCell(ci.fb,'icon-fb','FB',true)}
-  ${contactCell(ci.ig,'icon-ig','IG',true)}
-  ${contactCell(ci.x,'icon-x','X',true)}
-  ${contactCell(ci.wa,'icon-wa','WA',false)}
-  <td><button class="msg-btn" onclick="generateMessage('${s.username}','${s.shipFrom}','${marketsArr.join(',')}',${s.feedbackScore},'${s.feedbackPercentage}','${kws.replace(/'/g,"\\'")}')">✉ MSG</button></td>
+  <td class="contact-col" style="text-align:left; min-width:120px;">${contactBadges(s.contacts)}</td>
+  <td><button class="msg-btn" data-u="${esc(s.username)}" onclick="openSellerMessage(this.dataset.u)">✉ 文面</button></td>
 </tr>`;
     }
 
     const SELLER_HEAD = '<table class="seller-table"><thead><tr>'
       + '<th class="left">SELLER</th><th>SCORE</th><th>SHIP FROM</th><th>MARKETS</th>'
       + '<th>FEEDBACK</th><th>RATING</th><th>LISTINGS</th><th>HITS</th><th>AVG PRICE</th>'
-      + '<th>HP</th><th>MAIL</th><th>FB</th><th>IG</th><th>X</th><th>WA</th><th>ACTION</th>'
+      + '<th>窓口</th><th>ACTION</th>'
       + '</tr></thead><tbody>';
 
     let _sellers = [];
@@ -484,14 +574,25 @@
         const r = computeScore(s, mode);
         s._score = r.score; s._parts = r.parts;
       });
-      const sorted = _sellers.slice().sort((a, b) => {
+      const onlyContact = document.getElementById('onlyContact').checked;
+      const hideSent = document.getElementById('hideSent').checked;
+      const sent = loadSent();
+      const visible = _sellers.filter(s =>
+        (!onlyContact || contactLevel(s.contacts) > 0) &&
+        (!hideSent || !sent['ebay:' + s.username])
+      );
+      document.getElementById('sellerTools').style.display = _sellers.length ? 'flex' : 'none';
+      const sorted = visible.slice().sort((a, b) => {
         if (sortMode === 'listings') return (b.listingCount || 0) - (a.listingCount || 0);
         if (sortMode === 'feedback') return b.feedbackScore - a.feedbackScore;
         if (sortMode === 'rating') return parseFloat(b.feedbackPercentage) - parseFloat(a.feedbackPercentage);
         return b._score - a._score;
       });
       const body = document.getElementById('resultsBody');
-      document.getElementById('resultCount').textContent = `${sorted.length} sellers`;
+      const looked = _sellers.filter(s => s.contacts).length;
+      const reachable = _sellers.filter(s => contactLevel(s.contacts) === 2).length;
+      document.getElementById('resultCount').textContent =
+        `${sorted.length} sellers` + (looked ? `（窓口調査 ${looked} 件 → HPの窓口あり ${reachable} 件）` : '');
       body.innerHTML = sorted.length
         ? SELLER_HEAD + sorted.map(buildSellerRow).join('') + '</tbody></table>'
         : '<div class="status">条件に合うセラーが見つかりませんでした</div>';
@@ -882,6 +983,10 @@
       }
 
       _sellers = Object.values(allSellers);
+      // 前に調べた窓口があれば使い回す（30日以内）
+      const cache = contactCache();
+      const fresh = Date.now() - 30 * 86400000;
+      _sellers.forEach(s => { const c = cache[s.username]; if (c && Date.parse(c.checkedAt || 0) > fresh) s.contacts = c; });
       renderSellers();
 
       // 上位セラーについて「本当の出品数」を取りに行く（旧UIのITEMS列は出品数ではなかった）
@@ -1108,13 +1213,17 @@
         <th>X</th>
         <th>Mail</th>
         <th>WA</th>
+        <th>FORM</th>
+        <th>文面</th>
       </tr></thead><tbody>`;
 
       const BUY_LABEL = { yes: '有', likely: '可能性', unknown: '不明', no: '無' };
       const BUY_COLOR = { yes: '#00ff88', likely: '#f59e0b', unknown: '#666', no: '#444' };
 
-      results.forEach(s => {
+      results.forEach((s, i) => {
         const score = s.relevance_score || 0;
+        let shopKey = '';
+        try { shopKey = 'shop:' + new URL(s.website || s.source_url).hostname.replace(/^www\./, ''); } catch (e) {}
         const stars = score ? '★'.repeat(score) + '☆'.repeat(5 - score) : '<span style="color:#444;">分析待ち</span>';
         const scoreColor = score >= 4 ? '#00ff88' : score >= 3 ? '#f59e0b' : '#888';
         const directColor = s.direct_score === 'A' ? '#00ff88' : s.direct_score === 'B' ? '#f59e0b' : '#888';
@@ -1144,6 +1253,8 @@
           <td>${lnk(s.twitter, 'X')}</td>
           <td>${s.email ? `<a href="mailto:${s.email}" style="color:#f59e0b; font-size:11px;">${s.email}</a>` : '<span style="color:#333;">—</span>'}</td>
           <td>${s.whatsapp ? `<span style="color:#25d366; font-size:11px;">${s.whatsapp}</span>` : '<span style="color:#333;">—</span>'}</td>
+          <td>${(s.contactForm || s.contactPage) ? `<a class="ct ct-strong" href="${esc(s.contactForm || s.contactPage)}" target="_blank">FORM</a>` : '<span style="color:#333;">—</span>'}${(s.japanSignals || []).length ? ` <span class="jp-badge" title="${esc(s.japanSignals.join(', '))}">JP</span>` : ''}</td>
+          <td><button class="msg-btn" onclick="openShopMessage(${i})">✉ 文面</button><div data-shopkey="${esc(shopKey)}" style="margin-top:3px;">${shopKey ? sentBadge(shopKey) : ''}</div></td>
         </tr>`;
       });
 
@@ -1221,8 +1332,8 @@
 
       const paint = (analyzing) => {
         const list = [...merged.values()].sort((a, b) => {
-          const ac = (a.email || a.instagram || a.whatsapp) ? 1 : 0;
-          const bc = (b.email || b.instagram || b.whatsapp) ? 1 : 0;
+          const ac = (a.contactForm || a.contactPage || a.email) ? 2 : (a.instagram || a.whatsapp) ? 1 : 0;
+          const bc = (b.contactForm || b.contactPage || b.email) ? 2 : (b.instagram || b.whatsapp) ? 1 : 0;
           if (ac !== bc) return bc - ac;
           return (b.relevance_score || 0) - (a.relevance_score || 0);
         });
@@ -1302,68 +1413,273 @@
     // 初期化
     initCountryUI();
 
-    function updateContactIcons(username, contactInfo) {
-      const row = document.querySelector(`tr[data-username="${username}"]`);
-      if (!row) return;
-      const defs = [
-        { key: 'web',   cls: 'icon-web',   label: 'HP',   isLink: true },
-        { key: 'email', cls: 'icon-email', label: 'Mail', isLink: false },
-        { key: 'fb',    cls: 'icon-fb',    label: 'FB',   isLink: true },
-        { key: 'ig',    cls: 'icon-ig',    label: 'IG',   isLink: true },
-        { key: 'x',     cls: 'icon-x',     label: 'X',    isLink: true },
-        { key: 'wa',    cls: 'icon-wa',    label: 'WA',   isLink: false },
-      ];
-      const cells = row.querySelectorAll('.contact-col');
-      const suffix = contactInfo.verified ? '（実測）' : '（AI推定）';
-      defs.forEach((d, i) => {
-        const val = contactInfo[d.key];
-        if (val === undefined || val === null) return;
-        const cell = cells[i];
-        if (!cell) return;
-        if (val === false) {
-          cell.innerHTML = `<div class="contact-cell"><span class="contact-icon not-found ${d.cls}" title="${d.label}: なし">—</span></div>`;
-        } else {
-          const tag = d.isLink ? `a href="${val}" target="_blank"` : 'span';
-          const close = d.isLink ? 'a' : 'span';
-          cell.innerHTML = `<div class="contact-cell"><${tag} class="contact-icon found ${d.cls}" title="${d.label}${suffix}: ${val}">${d.label}</${close}></div>`;
+    // ── 売り込む商品 ─────────────────────────────────────────────
+    function getPitch() { return document.getElementById('pitch').value; }
+    function savePitch() { try { localStorage.setItem('kgPitch', getPitch()); } catch (e) {} }
+    (function initPitch() {
+      try { const v = localStorage.getItem('kgPitch'); if (v) document.getElementById('pitch').value = v; } catch (e) {}
+    })();
+
+    // ── 窓口調査（上位から小分けにして並列）──────────────────────────
+    function contactCache() { try { return JSON.parse(localStorage.getItem('kgContacts') || '{}'); } catch (e) { return {}; } }
+    function cacheContacts(list) {
+      const c = contactCache();
+      for (const r of list) if (r && r.username && !r.error) c[r.username] = r;
+      // 古いものから捨てて 500 件まで
+      const keys = Object.keys(c);
+      if (keys.length > 500) keys.sort((a, b) => (c[a].checkedAt || '').localeCompare(c[b].checkedAt || '')).slice(0, keys.length - 500).forEach(k => delete c[k]);
+      try { localStorage.setItem('kgContacts', JSON.stringify(c)); } catch (e) {}
+    }
+
+    async function fetchContacts(usernames) {
+      const res = await fetch('/api/contact', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sellers: usernames.map(u => ({ username: u })) }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+      return data.results || [];
+    }
+
+    async function lookupTopContacts() {
+      const n = parseInt(document.getElementById('lookupCount').value, 10) || 20;
+      const btn = document.getElementById('lookupBtn');
+      const log = document.getElementById('progressLog');
+      // いま表示されている並び順の上位から、まだ調べていないセラーだけ
+      const mode = document.getElementById('sizeMode').value;
+      _sellers.forEach(s => { const r = computeScore(s, mode); s._score = r.score; });
+      const targets = _sellers.slice().sort((a, b) => b._score - a._score).filter(s => !s.contacts).slice(0, n);
+      if (!targets.length) { log.innerHTML = '<div class="progress">上位はすべて調査済みです</div>'; return; }
+
+      btn.disabled = true;
+      const chunks = [];
+      for (let i = 0; i < targets.length; i += 3) chunks.push(targets.slice(i, i + 3));
+      let done = 0, failed = 0;
+      log.innerHTML = `<div class="progress">🔎 窓口を調査中 0/${targets.length}（同じ名前のHP・インスタ・FB・Xを検索 → HPを開いて問い合わせ窓口を実測）</div>`;
+      await mapLimit(chunks, 3, async chunk => {
+        try {
+          const results = await fetchContacts(chunk.map(s => s.username));
+          const byName = new Map(results.map(r => [r.username, r]));
+          chunk.forEach(s => { s.contacts = byName.get(s.username) || { error: '結果なし' }; });
+          cacheContacts(results);
+        } catch (e) {
+          failed += chunk.length;
+          chunk.forEach(s => { s.contacts = { error: e.message }; });
+        } finally {
+          done += chunk.length;
+          log.innerHTML = `<div class="progress">🔎 窓口を調査中 ${done}/${targets.length}</div>`;
+          renderSellers();
         }
       });
+      const reach = targets.filter(s => contactLevel(s.contacts) === 2).length;
+      const sns = targets.filter(s => contactLevel(s.contacts) === 1).length;
+      log.innerHTML = `<div class="progress">✅ ${targets.length} 件を調査 → HPの窓口あり <b style="color:#00ff88;">${reach}</b> 件 / SNSのみ ${sns} 件${failed ? ` / <span style="color:#ff2d6b;">失敗 ${failed} 件</span>` : ''}</div>`;
+      btn.disabled = false;
     }
 
-    async function generateMessage(username, shipFrom, markets, feedback, rating, keywords) {
+    // ── 文面モーダル ─────────────────────────────────────────────
+    // _msg: いま開いている相手 { key, title, target, contacts, drafts, hook, problems, active }
+    let _msg = null;
+
+    function channelsFor(c) {
+      const list = [];
+      if (c && (c.contactForm || c.contactPage)) list.push('form');
+      if (c && c.email) list.push('email');
+      if (c && c.instagram) list.push('instagram');
+      if (c && c.facebook) list.push('facebook');
+      if (c && c.x) list.push('x');
+      return list;
+    }
+
+    async function openSellerMessage(username) {
+      const s = _sellers.find(x => x.username === username);
+      if (!s) return;
+      openModal(`▸ ${s.username}`);
+      if (!s.contacts) {
+        setMsgStatus('🔎 窓口を調べています（同じ名前のHP・SNSを検索 → HPを開いて実測）…');
+        try {
+          const [r] = await fetchContacts([s.username]);
+          s.contacts = r; cacheContacts([r]); renderSellers();
+        } catch (e) { s.contacts = { error: e.message }; }
+      }
+      const c = s.contacts || {};
+      _msg = {
+        key: 'ebay:' + s.username,
+        title: s.username,
+        contacts: c,
+        target: {
+          name: s.username,
+          country: s.shipFrom,
+          sampleTitles: s.sampleTitles || [],
+          siteTitle: c.siteTitle || '',
+          siteExcerpt: c.siteExcerpt || '',
+          japanSignals: c.japanSignals || [],
+        },
+      };
+      await generateDrafts();
+    }
+
+    function openShopMessage(i) {
+      const r = (window._shopResults || [])[i];
+      if (!r) return;
+      openModal(`▸ ${r.company_name || r.website}`);
+      let host = '';
+      try { host = new URL(r.website || r.source_url).hostname.replace(/^www\./, ''); } catch (e) {}
+      _msg = {
+        key: 'shop:' + host,
+        title: r.company_name || host,
+        contacts: {
+          siteFetched: !!r.verified, website: r.website, contactForm: r.contactForm, contactPage: r.contactPage,
+          email: r.email, instagram: r.instagram, facebook: r.facebook, x: r.twitter, whatsapp: r.whatsapp,
+          japanSignals: r.japanSignals || [], source: { instagram: 'site', facebook: 'site', x: 'site' },
+        },
+        target: {
+          name: r.company_name || host,
+          country: r.country,
+          products: r.products || '',
+          siteTitle: r.page_title || '',
+          siteExcerpt: r.excerpt || '',
+          japanSignals: r.japanSignals || [],
+        },
+      };
+      generateDrafts();
+    }
+
+    function openModal(title) {
+      document.getElementById('msgTitle').textContent = title;
       document.getElementById('msgModal').classList.add('active');
-      document.getElementById('msgContent').innerHTML = '<div class="generating">⏳ 公式サイトをWeb検索中 → ページを開いて連絡先を実測 → 文面生成（20〜40秒）</div>';
+    }
+    function setMsgStatus(t, isErr) {
+      document.getElementById('msgContent').innerHTML = `<div class="generating" style="${isErr ? 'color:#ff2d6b;' : ''}">${t}</div>`;
+    }
+
+    async function generateDrafts() {
+      if (!_msg) return;
+      const pitchLabel = document.getElementById('pitch').selectedOptions[0].textContent;
+      setMsgStatus(`✍ 「${esc(pitchLabel)}」で文面を作成中（10〜20秒）…`);
+      document.getElementById('regenBtn').disabled = true;
       try {
-        const response = await fetch('/api/message', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username, shipFrom, markets, feedback, rating, keywords })
+        const res = await fetch('/api/message', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ target: _msg.target, pitch: getPitch() }),
         });
-        const data = await response.json();
-        if (data.message) {
-          const ci = data.contactInfo || {};
-          // 連絡先が「ページから実測できたもの」か「検索結果からのAI推定」かを明示する
-          const src = ci.verified
-            ? '<span style="color:#00ff88;">✅ 公式サイトのHTMLから実測</span>'
-            : `<span style="color:#f59e0b;">⚠ Web検索からのAI推定（確度: ${ci.confidence || '不明'}）— 送信前にご確認ください</span>`;
-          const found = ['web','email','ig','fb','x','wa'].filter(k => ci[k]).length;
-          document.getElementById('msgContent').innerHTML =
-            `<div style="font-size:11px; margin-bottom:10px;">${src}　連絡先 ${found} 件${ci.note ? `<div style="color:#666; margin-top:4px;">${ci.note}</div>` : ''}</div>`
-            + `<textarea id="msgText">${data.message}</textarea>`;
-          if (data.contactInfo) updateContactIcons(username, data.contactInfo);
-        } else {
-          document.getElementById('msgContent').innerHTML = `<div class="generating" style="color:#ff2d6b;">エラー: ${data.error || '不明なエラー'}</div>`;
-        }
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+        Object.assign(_msg, { drafts: data.drafts, hook: data.hook, problems: data.problems || {} });
+        const chs = channelsFor(_msg.contacts);
+        _msg.active = _msg.active && (chs.includes(_msg.active) || !chs.length) ? _msg.active : (chs[0] || 'email');
+        renderMsg();
       } catch (e) {
-        document.getElementById('msgContent').innerHTML = `<div class="generating" style="color:#ff2d6b;">エラーが発生しました</div>`;
+        setMsgStatus('エラー: ' + esc(e.message), true);
+      } finally {
+        document.getElementById('regenBtn').disabled = false;
       }
     }
+    function regenerateMessage() { generateDrafts(); }
 
-    function copyMessage() {
-      const textarea = document.getElementById('msgText');
-      if (textarea) { textarea.select(); document.execCommand('copy'); alert('コピーしました！'); }
+    function contactListHtml(c) {
+      const rows = [];
+      const label = (k) => (c.source || {})[k] === 'name' ? ' <span style="color:#f59e0b;">（名前が同じだけ・本人か確認してから送る）</span>' : '';
+      if (c.contactForm || c.contactPage) rows.push(`📝 問い合わせ: <a href="${esc(c.contactForm || c.contactPage)}" target="_blank">${esc(c.contactForm || c.contactPage)}</a>`);
+      if (c.email) rows.push(`✉ メール: ${esc((c.emails && c.emails.length ? c.emails : [c.email]).join(' / '))}`);
+      if (c.website) rows.push(`🌐 HP: <a href="${esc(c.website)}" target="_blank">${esc(c.website)}</a>`);
+      if (c.instagram) rows.push(`IG: <a href="${esc(c.instagram)}" target="_blank">${esc(c.instagram)}</a>${label('instagram')}`);
+      if (c.facebook) rows.push(`FB: <a href="${esc(c.facebook)}" target="_blank">${esc(c.facebook)}</a>${label('facebook')}`);
+      if (c.x) rows.push(`X: <a href="${esc(c.x)}" target="_blank">${esc(c.x)}</a>${label('x')}`);
+      if (c.whatsapp) rows.push(`WA: ${esc(c.whatsapp)}`);
+      if (c.japanSignals && c.japanSignals.length) rows.push(`<span class="jp-badge">JP</span> HPに「${esc(c.japanSignals.join('」「'))}」の記載あり`);
+      return rows.length ? `<div class="ct-list">${rows.join('<br>')}</div>`
+        : '<div class="ct-list" style="color:#f59e0b;">eBayの外の連絡先が見つかりませんでした。下の文面は、自分で窓口を見つけたとき用です。</div>';
     }
-    function closeModal() { document.getElementById('msgModal').classList.remove('active'); }
+
+    function renderMsg() {
+      const m = _msg;
+      const chs = channelsFor(m.contacts);
+      const tabs = chs.length ? chs : ['email', 'instagram', 'facebook', 'x'];
+      const sent = sentFor(m.key);
+      const ch = m.active;
+      const isMail = ch === 'form' || ch === 'email';
+      const body = isMail ? m.drafts.email.body : (m.drafts[ch] || '');
+      const probs = m.problems[isMail ? 'email' : ch];
+
+      let openLink = '';
+      if (ch === 'form') openLink = m.contacts.contactForm || m.contacts.contactPage;
+      if (ch === 'email' && m.contacts.email) openLink = `mailto:${m.contacts.email}?subject=${encodeURIComponent(m.drafts.email.subject)}&body=${encodeURIComponent(body)}`;
+      if (ch === 'instagram' || ch === 'facebook' || ch === 'x') openLink = m.contacts[ch] || '';
+
+      document.getElementById('msgContent').innerHTML = `
+        ${contactListHtml(m.contacts)}
+        ${m.hook ? `<div style="font-size:11px; color:#888; margin-top:8px;">1文目で触れた点：${esc(m.hook)}</div>` : ''}
+        <div class="ch-tabs">${tabs.map(t => `<button class="ch-tab ${t === ch ? 'active' : ''}" onclick="switchChannel('${t}')">${CH_LABEL[t]}${sent[t] ? ' <span class="done">✔</span>' : ''}</button>`).join('')}</div>
+        ${isMail ? `<input class="subject" id="msgSubject" value="${esc(m.drafts.email.subject)}">` : ''}
+        <textarea id="msgText">${esc(body)}</textarea>
+        ${probs && probs.length ? `<div class="warn">⚠ 自動チェックで残った点：${esc(probs.join(' / '))}（送る前に直してください）</div>` : ''}
+        <div class="ch-actions">
+          ${isMail ? '<button onclick="copyField(\'msgSubject\')">件名をコピー</button>' : ''}
+          <button onclick="copyField('msgText')">本文をコピー</button>
+          ${openLink ? `<a href="${esc(openLink)}" target="_blank" onclick="copyField('msgText', true)">${ch === 'email' ? 'メールを開く' : '開く（本文はコピー済み）'}</a>` : ''}
+          <button class="primary" onclick="markSent('${ch}')">${sent[ch] ? `✔ 送信済（${sent[ch]}）` : '送った'}</button>
+        </div>`;
+    }
+
+    function switchChannel(ch) {
+      // 手で直した本文を、タブを切り替えても失わないように戻しておく
+      saveEdits();
+      _msg.active = ch; renderMsg();
+    }
+    function saveEdits() {
+      if (!_msg || !_msg.drafts) return;
+      const t = document.getElementById('msgText'); const sj = document.getElementById('msgSubject');
+      const ch = _msg.active;
+      if (!t) return;
+      if (ch === 'form' || ch === 'email') { _msg.drafts.email.body = t.value; if (sj) _msg.drafts.email.subject = sj.value; }
+      else _msg.drafts[ch] = t.value;
+    }
+
+    async function copyField(id, silent) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      try { await navigator.clipboard.writeText(el.value); }
+      catch (e) { el.select(); document.execCommand('copy'); }
+      if (!silent) { const n = document.createElement('div'); n.textContent = 'コピーしました'; n.style.cssText = 'position:fixed;bottom:30px;left:50%;transform:translateX(-50%);background:#00ff88;color:#000;padding:8px 16px;border-radius:4px;font-size:12px;z-index:2000;'; document.body.appendChild(n); setTimeout(() => n.remove(), 1200); }
+    }
+
+    function markSent(ch) {
+      saveEdits();
+      const all = loadSent();
+      const cur = all[_msg.key] || {};
+      if (cur[ch]) delete cur[ch]; else cur[ch] = new Date().toISOString().slice(0, 10);
+      if (Object.keys(cur).length) all[_msg.key] = cur; else delete all[_msg.key];
+      saveSent(all);
+      renderMsg();
+      if (_sellers.length) renderSellers();
+      if (window._shopResults) { const b = document.querySelector(`[data-shopkey="${_msg.key}"]`); if (b) b.innerHTML = sentBadge(_msg.key); }
+    }
+
+    function closeModal() { saveEdits(); document.getElementById('msgModal').classList.remove('active'); }
+
+    // セラー一覧のCSV（窓口・送信記録つき。スプレッドシートに貼って使う）
+    function downloadSellerCSV() {
+      if (!_sellers.length) return;
+      const sent = loadSent();
+      const headers = ['セラー', 'スコア', '発送国', '評価数', '評価率', '出品数', 'HP', '問い合わせ', 'メール', 'Instagram', 'IG確度', 'Facebook', 'X', '日本輸入の記載', '送信記録'];
+      const rows = _sellers.slice().sort((a, b) => b._score - a._score).map(s => {
+        const c = s.contacts || {};
+        const sr = sent['ebay:' + s.username] || {};
+        return [s.username, s._score, s.shipFrom, s.feedbackScore, s.feedbackPercentage, s.listingCount,
+          c.website, c.contactForm || c.contactPage, (c.emails || []).join(' '), c.instagram,
+          c.instagram ? ((c.source || {}).instagram === 'name' ? '名前一致のみ' : 'HPに記載') : '',
+          c.facebook, c.x, (c.japanSignals || []).join(' / '),
+          Object.entries(sr).map(([k, v]) => `${CH_LABEL[k] || k}:${v}`).join(' ')];
+      }).map(r => r.map(v => `"${(v == null ? '' : v).toString().replace(/"/g, '""')}"`).join(','));
+      const csv = [headers.map(h => `"${h}"`).join(','), ...rows].join('\n');
+      const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `ebay_sellers_${new Date().toISOString().slice(0, 10)}.csv`;
+      a.click();
+    }
+
     window.addEventListener('click', (e) => { if (e.target === document.getElementById('msgModal')) closeModal(); });
   </script>
 </body>

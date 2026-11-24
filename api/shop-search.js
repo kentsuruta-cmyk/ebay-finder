@@ -184,6 +184,9 @@ ${deduped.map((r, i) => `[${i}] ${r.country} / ${r.angle}\nTitle: ${r.title}\nUR
       facebook: s.facebook || '',
       twitter: s.twitter || '',
       whatsapp: s.whatsapp || '',
+      contactForm: s.contactForm || '',
+      contactPage: s.contactPage || '',
+      japanSignals: s.japanSignals || [],
     };
   });
 
@@ -196,7 +199,7 @@ ${deduped.map((r, i) => `[${i}] ${r.country} / ${r.angle}\nTitle: ${r.title}\nUR
       uniqueDomains: deduped.length,
       notShop: dropped,
       scraped: candidates.filter(c => c.verified).length,
-      withContact: candidates.filter(c => c.email || c.instagram || c.whatsapp).length,
+      withContact: candidates.filter(c => c.email || c.contactForm || c.contactPage || c.instagram || c.whatsapp).length,
     },
   });
 };
